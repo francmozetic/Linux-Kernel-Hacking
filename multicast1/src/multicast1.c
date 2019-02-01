@@ -1,10 +1,10 @@
 /**
- * @file					multicast1.c
- * @author				Aleksander Mozetic
- * @date				15 March 2019
- * @version			1.2.2.0
- * @copyright		2019 IndigoSoft
- * @brief				A userspace application for testing Linux kernelspace connector.
+ * @file: 	multicast1.c
+ * @author: Aleksander Mozetic
+ * @date: 15 March 2019
+ * @version: 1.2.2.0
+ * @copyright: 2019 IndigoSoft
+ * @brief: A userspace application for testing Linux kernelspace connector.
 */
 
 #include <stdio.h>
