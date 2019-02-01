@@ -1,10 +1,10 @@
 /**
- * @file					apalis_connector.c
- * @author				Aleksander Mozetic
- * @date				10 March 2019
- * @version			1.2.2.0
- * @copyright		2019 IndigoSoft
- * @brief				A kernel module for opening Linux kernelspace connector.
+ * @file: 	apalis_connector.c
+ * @author: Aleksander Mozetic
+ * @date: 10 March 2019
+ * @version: 1.2.2.0
+ * @copyright: 2019 IndigoSoft
+ * @brief: A kernel module for monitoring Linux kernelspace connector.
 */
 
 #include <linux/kernel.h>
@@ -208,7 +208,6 @@ int __cn_netlink_send_mult(struct cn_msg *msg, u16 len, u32 portid, u32 __group,
 	}
 
 	data = nlmsg_data(nlh);
-
 	memcpy(data, msg, size);
 
 	NETLINK_CB(skb).dst_group = group;
@@ -226,7 +225,6 @@ EXPORT_SYMBOL_GPL(__cn_netlink_send_mult);
 /* same as cn_netlink_send_mult except msg->len is used for len */
 int __cn_netlink_send(struct cn_msg *msg, u32 portid, u32 __group, gfp_t gfp_mask)
 {
-	pr_info("%s: msg->data: %s\n", __func__, (char *)msg->data);    // ok
 	return __cn_netlink_send_mult(msg, msg->len, portid, __group, gfp_mask);
 }
 EXPORT_SYMBOL_GPL(__cn_netlink_send);
