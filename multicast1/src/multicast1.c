@@ -30,7 +30,7 @@ int main(void) {
 	memset(&src_addr, 0, sizeof(src_addr));
 	src_addr.nl_family = AF_NETLINK;
 	src_addr.nl_pid = getpid();
-	src_addr.nl_groups = 10;    // ?
+	src_addr.nl_groups = 10;
 	bind(sock, (struct sockaddr *)&src_addr, sizeof(src_addr));
 
 	/*
