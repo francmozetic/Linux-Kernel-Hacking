@@ -1,10 +1,10 @@
 /**
- * @file					apalis_controller.c
- * @author				Aleksander Mozetic
- * @date				15 March 2019
- * @version			1.2.2.0
- * @copyright		2019 IndigoSoft
- * @brief				A kernel module for testing Linux kernelspace connector.
+ * @file: apalis_controller.c
+ * @author: Aleksander Mozetic
+ * @date: 15 March 2019
+ * @version: 1.2.2.0
+ * @copyright: 2019 IndigoSoft
+ * @brief: A kernel module for testing Linux kernelspace connector.
 */
 
 #include <linux/module.h>
@@ -143,7 +143,8 @@ static void netlink_recv_msg(struct sk_buff *skb)
 
 	strncpy(NLMSG_DATA(nlh), msg, size);
 
-	NETLINK_CB(skb_out).dst_group = 0;				/* destination unicast */
+	/* destination unicast */
+	NETLINK_CB(skb_out).dst_group = 0;
 	res = nlmsg_unicast(nl_sock, skb_out, pid);
 }
 
