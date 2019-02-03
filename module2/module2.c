@@ -166,7 +166,6 @@ int __cn_netlink_send_mult(struct cn_msg *msg, u16 len, u32 portid, u32 __group,
 	unsigned int size;
 	struct sk_buff *skb;
 	struct nlmsghdr *nlh;
-	struct cn_msg *data;
 	struct cn_dev *dev = &cdev;
 	u32 group = 0;
 	int found = 0;
@@ -207,8 +206,7 @@ int __cn_netlink_send_mult(struct cn_msg *msg, u16 len, u32 portid, u32 __group,
 		return -EMSGSIZE;
 	}
 
-	data = nlmsg_data(nlh);
-	memcpy(data, msg, size);
+	memcpy(nlmsg_data(nlh), msg, size);
 
 	NETLINK_CB(skb).dst_group = group;
 
