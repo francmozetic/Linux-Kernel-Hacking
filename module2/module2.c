@@ -369,10 +369,7 @@ static int cn_proc_show(struct seq_file *m, void *v)
 	spin_lock_bh(&dev->queue_lock);
 
 	list_for_each_entry(cbq, &dev->queue_list, callback_entry) {
-		seq_printf(m, "%-15s %u:%u\n",
-			   cbq->id.name,
-			   cbq->id.id.idx,
-			   cbq->id.id.val);
+		seq_printf(m, "%-15s %u:%u\n", cbq->id.name, cbq->id.id.idx, cbq->id.id.val);
 	}
 
 	spin_unlock_bh(&dev->queue_lock);
@@ -429,6 +426,8 @@ static void cn_fini(void)
 	struct cn_dev *dev = &cdev;
 
 	cn_already_initialized = 0;
+
+	remove_proc_entry("connector", init_net.proc_net);
 
 	cn_queue_free_dev(dev->cbdev);
 	netlink_kernel_release(dev->nls);

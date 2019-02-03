@@ -26,6 +26,7 @@ __attribute__((section("__versions"))) = {
 	{ 0x96424867, __VMLINUX_SYMBOL_STR(single_release) },
 	{ 0xa1d55e90, __VMLINUX_SYMBOL_STR(_raw_spin_lock_bh) },
 	{ 0x1247444, __VMLINUX_SYMBOL_STR(seq_printf) },
+	{ 0x431901b1, __VMLINUX_SYMBOL_STR(remove_proc_entry) },
 	{ 0xc7318a72, __VMLINUX_SYMBOL_STR(seq_read) },
 	{ 0x27e1a049, __VMLINUX_SYMBOL_STR(printk) },
 	{ 0xdf3d590b, __VMLINUX_SYMBOL_STR(netlink_kernel_release) },
@@ -52,4 +53,4 @@ __attribute__((section(".modinfo"))) =
 "depends=";
 
 
-MODULE_INFO(srcversion, "4B42A038F815F00B7B0DD01");
+MODULE_INFO(srcversion, "2E1CBFE711E131D4F3DC9B5");
