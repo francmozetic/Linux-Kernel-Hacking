@@ -359,6 +359,40 @@ static struct cn_dev cdev = {
 	.input   = cn_rx_skb,
 };
 
+static int cn_proc_show(struct seq_file *m, void *v)
+{
+	struct cn_queue_dev *dev = cdev.cbdev;
+	struct cn_callback_entry *cbq;
+
+	seq_printf(m, "Name            ID\n");
+
+	spin_lock_bh(&dev->queue_lock);
+
+	list_for_each_entry(cbq, &dev->queue_list, callback_entry) {
+		seq_printf(m, "%-15s %u:%u\n",
+			   cbq->id.name,
+			   cbq->id.id.idx,
+			   cbq->id.id.val);
+	}
+
+	spin_unlock_bh(&dev->queue_lock);
+
+	return 0;
+}
+
+static int cn_proc_open(struct inode *inode, struct file *file)
+{
+	return single_open(file, cn_proc_show, NULL);
+}
+
+static const struct file_operations cn_file_ops = {
+    .owner = THIS_MODULE,
+	.open = cn_proc_open,
+	.read = seq_read,
+	.llseek = seq_lseek,
+    .release = single_release
+};
+
 /*
  * 2.6.14 netlink code only allows to select a group which is less or equal to
  * the maximum group number, which is used at netlink_kernel_create() time.
@@ -385,7 +419,7 @@ static int cn_init(void)
 
 	cn_already_initialized = 1;
 
-
+	proc_create("connector", S_IRUGO, init_net.proc_net, &cn_file_ops);
 
 	return 0;
 }
