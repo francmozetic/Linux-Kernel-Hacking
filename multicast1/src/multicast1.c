@@ -57,8 +57,10 @@ int main(void) {
 	int on = src_addr.nl_groups;
 	setsockopt(sock, 270, 1, &on, sizeof(on));    // Where 270 is SOL_NETLINK, and 1 is a NETLINK_ADD_MEMBERSHIP socket option.
 
+	memset(&iov, 0, sizeof(iov));
 	iov.iov_base = (void *)buffer;
 	iov.iov_len = sizeof(buffer);
+	memset(&msg, 0, sizeof(msg));
 	msg.msg_name = &src_addr;
 	msg.msg_namelen = sizeof(src_addr);
 	msg.msg_iov = &iov;
