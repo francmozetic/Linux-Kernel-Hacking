@@ -18,10 +18,26 @@
 #define NETLINK_USER 31
 #define MAX_PAYLOAD 1024
 
+struct cb_id {
+	__u32 idx;
+	__u32 val;
+};
+
+struct cn_msg {
+	struct cb_id id;
+
+	__u32 seq;
+	__u32 ack;
+
+	__u16 len;    /* Length of the following data */
+	__u16 flags;
+	__u8 data[0];
+};
+
 struct sockaddr_nl src_addr;
-struct nlmsghdr *nlh = NULL;
 struct msghdr msg;
 struct iovec iov;
+struct cn_msg *m;
 char buffer[32768];
 int sock;
 
@@ -53,10 +69,12 @@ int main(void) {
 	while (1)
 	{
 		recvmsg(sock, &msg, 0);
-		printf("Received message payload: %s\n", (char *)NLMSG_DATA((struct nlmsghdr *)&buffer));
+		m = (struct cn_msg *)NLMSG_DATA((struct nlmsghdr *)&buffer);
+		printf("Received message payload: %s\n", (char *)m->data);
 
 
 
+		//printf("Received message payload: %s\n", (char *)NLMSG_DATA((struct nlmsghdr *)&buffer));
 	}
 	close(	sock);
 	return EXIT_SUCCESS;
