@@ -66,7 +66,7 @@ int main(void) {
 	msg.msg_iov = &iov;
 	msg.msg_iovlen = 1;
 
-	printf("Waiting for messages from kernel.\n");
+	printf("Waiting for netlink messages from kernel.\n");
 
 	while (1)
 	{
