@@ -192,7 +192,6 @@ int __cn_netlink_send_mult(struct cn_msg *msg, u16 len, u32 portid, u32 __group,
 
 	if (!portid && !netlink_has_listeners(dev->nls, group))
 		return -ESRCH;
-	pr_info("%s: out of netlink_has_listeners()\n", __func__);    // ok
 
 	size = sizeof(*msg) + len;
 
