@@ -26,7 +26,6 @@
 
 struct sockaddr_nl src_addr;
 struct cn_msg cn_msg;
-struct msghdr msg;
 
 char buffer[32768];
 int sock;
@@ -160,6 +159,7 @@ int main(void) {
 	iov[2].iov_base = &op;
 	iov[2].iov_len = sizeof(op);
 
+	struct msghdr msg;
 	msg.msg_name = &src_addr;
 	msg.msg_namelen = sizeof(src_addr);
 	msg.msg_iov = &iov[0];
