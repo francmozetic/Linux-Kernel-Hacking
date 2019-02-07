@@ -16,14 +16,18 @@
 
 #include <linux/netlink.h>
 #include <linux/connector.h>
-#include <linux/cn_proc.h>
 #include <linux/filter.h>
 
+#include <linux/cn_proc.h>
+
 #include <arpa/inet.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 struct sockaddr_nl src_addr;
+struct cn_msg cn_msg;
 struct msghdr msg;
-struct iovec iov;
+
 char buffer[32768];
 int sock;
 int ret;
@@ -75,6 +79,46 @@ void filter(int sock)
 		perror("setsockopt");
 }
 
+static int subscription_message(int pidfd)
+{
+	char buffer[32768];
+	struct nlmsghdr *nlh = (struct nlmsghdr *)buffer;
+	enum proc_cn_mcast_op op = PROC_CN_MCAST_LISTEN;
+	struct cn_msg cn_msg = {
+		.id = {
+			.idx = CN_IDX_PROC,
+			.val = CN_VAL_PROC,
+		},
+		.seq = 0,
+		.ack = 0,
+		.len = sizeof(op),
+	};
+
+	struct iovec iov[3] = {
+		[0] = {
+			.iov_base = buffer,
+			.iov_len = NLMSG_LENGTH(0),
+		},
+		[1] = {
+			.iov_base = &cn_msg,
+			.iov_len = sizeof(cn_msg),
+		},
+		[2] = {
+			.iov_base = &op,
+			.iov_len = sizeof(op),
+		}
+	};
+
+	nlh->nlmsg_len = NLMSG_LENGTH(sizeof(cn_msg) + sizeof(op));
+	nlh->nlmsg_type = NLMSG_DONE;
+	nlh->nlmsg_flags = 0;
+	nlh->nlmsg_seq = 0;
+	nlh->nlmsg_pid = 0;
+
+	iov;
+	return 0;
+}
+
 int main(void) {
 	sock = socket(AF_NETLINK, SOCK_DGRAM, NETLINK_KOBJECT_UEVENT);
 	memset(&src_addr, 0, sizeof(src_addr));
@@ -89,11 +133,44 @@ int main(void) {
         return 1;
     }
 
+	/*
+	 * Send subscription message. Userspace sends this enum to register
+	 * with the kernel that it is listening for events on the connector.
+	 */
+	struct cn_msg cn_msg;
+	enum proc_cn_mcast_op op = PROC_CN_MCAST_LISTEN;
+	cn_msg.id.idx = CN_IDX_PROC;
+	cn_msg.id.val = CN_VAL_PROC;
+	cn_msg.seq = 0;
+	cn_msg.ack = 0;
+	cn_msg.len = sizeof(op);
+
+	struct nlmsghdr *nlh = (struct nlmsghdr *)&buffer;
+	nlh->nlmsg_len = NLMSG_LENGTH(sizeof(cn_msg) + sizeof(op));
+	nlh->nlmsg_type = NLMSG_DONE;
+	nlh->nlmsg_flags = 0;
+	nlh->nlmsg_seq = 0;
+	nlh->nlmsg_pid = getpid();
+
+	struct iovec iov[3];
+	iov[0].iov_base = nlh;
+	iov[0].iov_len = NLMSG_LENGTH(0);
+	iov[1].iov_base = &cn_msg;
+	iov[1].iov_len = sizeof(cn_msg);
+	iov[2].iov_base = &op;
+	iov[2].iov_len = sizeof(op);
+
+	msg.msg_name = &src_addr;
+	msg.msg_namelen = sizeof(src_addr);
+	msg.msg_iov = &iov[0];
+	msg.msg_iovlen = 1;
+	sendmsg(sock, &msg, 0);
+
 	printf("Waiting for netlink messages from kernel.\n");
 
 	while (1)
 	{
-		int r = recv(sock, buffer, sizeof(msg), MSG_DONTWAIT);
+		int r = recv(sock, buffer, sizeof(buffer), MSG_DONTWAIT);
 		if (r == -1)
 			continue;
 		if (r < 0) {
