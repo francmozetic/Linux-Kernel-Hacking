@@ -25,9 +25,6 @@
 #include <fcntl.h>
 
 struct sockaddr_nl src_addr;
-struct cn_msg cn_msg;
-
-char buffer[32768];
 int sock;
 int ret;
 
@@ -35,14 +32,13 @@ void install_filter(int sock)
 {
 	// return amount of bytes of the packet
 	struct sock_filter filter[] = {
-			// 1. return all if type != NLMSG_DONE
+			/* 1. return all if type != NLMSG_DONE */
 			BPF_STMT(BPF_LD | BPF_H | BPF_ABS,
 					__builtin_offsetof(struct nlmsghdr, nlmsg_type)),
 			BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, htons(NLMSG_DONE), 1, 0),
-			//BPF_STMT(BPF_RET | BPF_K, 0x0),    /* message is dropped */
 			BPF_STMT(BPF_RET | BPF_K, 0xffffffff),
 
-			// 2. return all if cn_msg::id::idx != CN_IDX_PROC
+			/* 2. return all if cn_msg::id::idx != CN_IDX_PROC */
 			// load 32bit id from absolute address given in argument
 			BPF_STMT(BPF_LD | BPF_W | BPF_ABS,
 					// skip nlmsghdr
@@ -53,7 +49,7 @@ void install_filter(int sock)
 			BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, htonl(CN_IDX_PROC), 1, 0),
 			BPF_STMT(BPF_RET | BPF_K, 0xffffffff),
 
-			// 3. return all if cn_msg::id::val != CN_VAL_PROC
+			/* 3. return all if cn_msg::id::val != CN_VAL_PROC */
 			BPF_STMT(BPF_LD | BPF_W | BPF_ABS,
 					NLMSG_LENGTH(0)
 					+ __builtin_offsetof(struct cn_msg, id)
@@ -61,7 +57,7 @@ void install_filter(int sock)
 			BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, htonl(CN_VAL_PROC), 1, 0),
 			BPF_STMT(BPF_RET | BPF_K, 0xffffffff),
 
-			// 4. if proc_event type is not PROC_EVENT_EXEC, throw away packet
+			/* 4. if proc_event type is not PROC_EVENT_EXEC, throw away packet? */
         	BPF_STMT(BPF_LD | BPF_W | BPF_ABS,
         			NLMSG_LENGTH(0)
 					+ __builtin_offsetof(struct cn_msg, data)
@@ -157,6 +153,7 @@ int main(void) {
 	cn_msg.ack = 0;
 	cn_msg.len = sizeof(op);
 
+	char buffer[32768];
 	struct nlmsghdr *nlh = (struct nlmsghdr *)&buffer;
 	nlh->nlmsg_len = NLMSG_LENGTH(sizeof(cn_msg) + sizeof(op));
 	nlh->nlmsg_type = NLMSG_DONE;
@@ -165,6 +162,7 @@ int main(void) {
 	nlh->nlmsg_pid = getpid();
 
 	struct iovec iov[3];
+	memset(&iov, 0, sizeof(iov));
 	iov[0].iov_base = nlh;
 	iov[0].iov_len = NLMSG_LENGTH(0);
 	iov[1].iov_base = &cn_msg;
@@ -173,13 +171,14 @@ int main(void) {
 	iov[2].iov_len = sizeof(op);
 
 	struct msghdr msg;
+	memset(&msg, 0, sizeof(msg));
 	msg.msg_name = &src_addr;
 	msg.msg_namelen = sizeof(src_addr);
 	msg.msg_iov = &iov[0];
 	msg.msg_iovlen = 1;
 	sendmsg(sock, &msg, 0);
 
-	printf("Waiting for netlink messages from kernel.\n");
+	printf("Waiting for netlink messages from the kernel.\n");
 
 	while (1)
 	{
