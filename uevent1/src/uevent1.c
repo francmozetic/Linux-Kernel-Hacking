@@ -24,7 +24,6 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-struct sockaddr_nl src_addr;
 int sock;
 int ret;
 
@@ -115,18 +114,13 @@ static int subscription_message(int pidfd)
 	nlh->nlmsg_seq = 0;
 	nlh->nlmsg_pid = 0;
 
-	struct msghdr msg;
-	msg.msg_name = &src_addr;
-	msg.msg_namelen = sizeof(src_addr);
-	msg.msg_iov = &iov[0];
-	msg.msg_iovlen = 1;
-	sendmsg(sock, &msg, 0);
-
 	return 0;
 }
 
-int main(void) {
+int main(void)
+{
 	sock = socket(AF_NETLINK, SOCK_DGRAM, NETLINK_KOBJECT_UEVENT);
+	struct sockaddr_nl src_addr;
 	memset(&src_addr, 0, sizeof(src_addr));
 	src_addr.nl_family = AF_NETLINK;
 	src_addr.nl_pid = getpid();
@@ -135,9 +129,9 @@ int main(void) {
 	ret = bind(sock, (struct sockaddr*)&src_addr, sizeof(src_addr));
 	if (ret) {
 		printf("Failed to bind netlink socket.");
-        close(sock);
-        return 1;
-    }
+		close(sock);
+		return 1;
+	}
 
 	install_filter(sock);
 
