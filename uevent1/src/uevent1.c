@@ -55,24 +55,32 @@ void install_filter(int sock)
 
 			// 3. return all if cn_msg::id::val != CN_VAL_PROC
 			BPF_STMT(BPF_LD | BPF_W | BPF_ABS,
-					NLMSG_LENGTH(0) + __builtin_offsetof(struct cn_msg, id)
+					NLMSG_LENGTH(0)
+					+ __builtin_offsetof(struct cn_msg, id)
 					+ __builtin_offsetof(struct cb_id, val)),
 			BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, htonl(CN_VAL_PROC), 1, 0),
 			BPF_STMT(BPF_RET | BPF_K, 0xffffffff),
 
 			// 4. if proc_event type is not PROC_EVENT_EXEC, throw away packet
         	BPF_STMT(BPF_LD | BPF_W | BPF_ABS,
-        			NLMSG_LENGTH(0) + __builtin_offsetof(struct cn_msg, data)
+        			NLMSG_LENGTH(0)
+					+ __builtin_offsetof(struct cn_msg, data)
 					+ __builtin_offsetof(struct proc_event, what)),
 			BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, htonl(PROC_EVENT_EXEC), 1, 0),
-			BPF_STMT(BPF_RET | BPF_K, 0),    /* message is dropped */
+			BPF_STMT(BPF_RET | BPF_K, 0x0),    /* message is dropped */
+
+			/* 5. check message comes from the kernel */
+			BPF_STMT(BPF_LD | BPF_H | BPF_ABS,
+					__builtin_offsetof(struct nlmsghdr, nlmsg_pid)),
+			BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, 0, 1, 0),
+			BPF_STMT(BPF_RET | BPF_K, 0x0),    /* message is dropped */
 	};
 
 	struct sock_fprog fprog;
+	memset(&fprog, 0, sizeof(fprog));
 	fprog.filter = filter;
-	fprog.len = sizeof filter / sizeof filter[0];
-	if (setsockopt(sock, SOL_SOCKET, SO_ATTACH_FILTER, &fprog, sizeof fprog) == -1)
-		perror("setsockopt");
+	fprog.len = sizeof(filter) / sizeof(*filter);
+	setsockopt(sock, SOL_SOCKET, SO_ATTACH_FILTER, &fprog, sizeof(fprog));
 }
 
 static int subscription_message(int pidfd)
