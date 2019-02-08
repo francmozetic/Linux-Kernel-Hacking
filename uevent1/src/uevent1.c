@@ -31,15 +31,15 @@ char buffer[32768];
 int sock;
 int ret;
 
-void filter(int sock)
+void install_filter(int sock)
 {
 	// return amount of bytes of the packet
-	// context: | struct nlmsghdr | struct cn_msg | struct proc_event ... |
 	struct sock_filter filter[] = {
 			// 1. return all if type != NLMSG_DONE
 			BPF_STMT(BPF_LD | BPF_H | BPF_ABS,
 					__builtin_offsetof(struct nlmsghdr, nlmsg_type)),
 			BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, htons(NLMSG_DONE), 1, 0),
+			//BPF_STMT(BPF_RET | BPF_K, 0x0),    /* message is dropped */
 			BPF_STMT(BPF_RET | BPF_K, 0xffffffff),
 
 			// 2. return all if cn_msg::id::idx != CN_IDX_PROC
@@ -65,8 +65,7 @@ void filter(int sock)
         			NLMSG_LENGTH(0) + __builtin_offsetof(struct cn_msg, data)
 					+ __builtin_offsetof(struct proc_event, what)),
 			BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, htonl(PROC_EVENT_EXEC), 1, 0),
-			BPF_STMT(BPF_RET | BPF_K, 0),
-			BPF_STMT(BPF_RET | BPF_K, 0xffffffff),
+			BPF_STMT(BPF_RET | BPF_K, 0),    /* message is dropped */
 	};
 
 	struct sock_fprog fprog;
@@ -112,7 +111,13 @@ static int subscription_message(int pidfd)
 	nlh->nlmsg_seq = 0;
 	nlh->nlmsg_pid = 0;
 
-	iov;
+	struct msghdr msg;
+	msg.msg_name = &src_addr;
+	msg.msg_namelen = sizeof(src_addr);
+	msg.msg_iov = &iov[0];
+	msg.msg_iovlen = 1;
+	sendmsg(sock, &msg, 0);
+
 	return 0;
 }
 
@@ -130,7 +135,7 @@ int main(void) {
         return 1;
     }
 
-	filter(sock);
+	install_filter(sock);
 
 	/*
 	 * Send subscription message. Userspace sends this enum to register
