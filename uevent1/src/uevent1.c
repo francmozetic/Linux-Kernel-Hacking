@@ -35,7 +35,7 @@ void filter(int sock)
 {
 	// return amount of bytes of the packet
 	// context: | struct nlmsghdr | struct cn_msg | struct proc_event ... |
-	struct sock_filter f[] = {
+	struct sock_filter filter[] = {
 			// 1. return all if type != NLMSG_DONE
 			BPF_STMT(BPF_LD | BPF_H | BPF_ABS,
 					__builtin_offsetof(struct nlmsghdr, nlmsg_type)),
@@ -60,8 +60,6 @@ void filter(int sock)
 			BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, htonl(CN_VAL_PROC), 1, 0),
 			BPF_STMT(BPF_RET | BPF_K, 0xffffffff),
 
-			// packet contains 1 netlink msg from proc_cn
-
 			// 4. if proc_event type is not PROC_EVENT_EXEC, throw away packet
         	BPF_STMT(BPF_LD | BPF_W | BPF_ABS,
         			NLMSG_LENGTH(0) + __builtin_offsetof(struct cn_msg, data)
@@ -72,8 +70,8 @@ void filter(int sock)
 	};
 
 	struct sock_fprog fprog;
-	fprog.filter = f;
-	fprog.len = sizeof f / sizeof f[0];
+	fprog.filter = filter;
+	fprog.len = sizeof filter / sizeof filter[0];
 	if (setsockopt(sock, SOL_SOCKET, SO_ATTACH_FILTER, &fprog, sizeof fprog) == -1)
 		perror("setsockopt");
 }
@@ -131,6 +129,8 @@ int main(void) {
         close(sock);
         return 1;
     }
+
+	filter(sock);
 
 	/*
 	 * Send subscription message. Userspace sends this enum to register
