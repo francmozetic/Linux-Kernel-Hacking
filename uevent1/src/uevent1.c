@@ -167,12 +167,17 @@ int main(void)
 	iov[2].iov_base = &op;
 	iov[2].iov_len = sizeof(op);
 
+	//writev(sock, iov, 3);
+
+	/*
+	 * This structure contains parameter information for sendmsg.
+	 */
 	struct msghdr msg;
 	memset(&msg, 0, sizeof(msg));
 	msg.msg_name = &src_addr;
 	msg.msg_namelen = sizeof(src_addr);
 	msg.msg_iov = &iov[0];
-	msg.msg_iovlen = 1;
+	msg.msg_iovlen = 3;
 	sendmsg(sock, &msg, 0);
 
 	printf("Waiting for netlink messages from the kernel.\n");
