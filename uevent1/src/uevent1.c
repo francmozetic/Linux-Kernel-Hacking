@@ -133,6 +133,9 @@ int main(void)
 		return 1;
 	}
 
+	/*
+	 * Installs a packet filter to the netlink socket.
+	 */
 	install_filter(sock);
 
 	/*
