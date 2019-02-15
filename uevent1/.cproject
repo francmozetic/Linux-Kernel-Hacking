@@ -22,7 +22,10 @@
 							<tool command="${CC}" id="cdt.managedbuild.tool.gnu.cross.c.compiler.1379281681" name="Cross GCC Compiler" superClass="cdt.managedbuild.tool.gnu.cross.c.compiler">
 								<option defaultValue="gnu.c.optimization.level.none" id="gnu.c.compiler.option.optimization.level.584588413" name="Optimization Level" superClass="gnu.c.compiler.option.optimization.level" useByScannerDiscovery="false" valueType="enumerated"/>
 								<option id="gnu.c.compiler.option.debugging.level.1854663536" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level" useByScannerDiscovery="false" value="gnu.c.debugging.level.max" valueType="enumerated"/>
-								<option id="gnu.c.compiler.option.misc.other.1281339294" superClass="gnu.c.compiler.option.misc.other" useByScannerDiscovery="false" value="${CFLAGS} -c" valueType="string"/>
+								<option id="gnu.c.compiler.option.misc.other.1281339294" name="Other flags" superClass="gnu.c.compiler.option.misc.other" useByScannerDiscovery="false" value="${CFLAGS} -c" valueType="string"/>
+								<option id="gnu.c.compiler.option.include.paths.1868764467" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
+									<listOptionValue builtIn="false" value="/home/aleksander/libnl-3.2.25/include"/>
+								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1552380771" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.cross.cpp.compiler.1799765508" name="Cross G++ Compiler" superClass="cdt.managedbuild.tool.gnu.cross.cpp.compiler">
@@ -30,7 +33,14 @@
 								<option id="gnu.cpp.compiler.option.debugging.level.807933913" name="Debug Level" superClass="gnu.cpp.compiler.option.debugging.level" useByScannerDiscovery="false" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
 							</tool>
 							<tool command="${CXX}" id="cdt.managedbuild.tool.gnu.cross.c.linker.1552044167" name="Cross GCC Linker" superClass="cdt.managedbuild.tool.gnu.cross.c.linker">
-								<option id="gnu.c.link.option.ldflags.1068319133" superClass="gnu.c.link.option.ldflags" useByScannerDiscovery="false" value="${LDFLAGS}" valueType="string"/>
+								<option id="gnu.c.link.option.ldflags.1068319133" name="Linker flags" superClass="gnu.c.link.option.ldflags" useByScannerDiscovery="false" value="${LDFLAGS}" valueType="string"/>
+								<option id="gnu.c.link.option.libs.1063240560" name="Libraries (-l)" superClass="gnu.c.link.option.libs" useByScannerDiscovery="false" valueType="libs">
+									<listOptionValue builtIn="false" value="nl-3"/>
+									<listOptionValue builtIn="false" value="nl-genl-3"/>
+								</option>
+								<option id="gnu.c.link.option.paths.81888043" name="Library search path (-L)" superClass="gnu.c.link.option.paths" useByScannerDiscovery="false" valueType="libPaths">
+									<listOptionValue builtIn="false" value="/home/aleksander/git/libnl"/>
+								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.linker.input.91102720" superClass="cdt.managedbuild.tool.gnu.c.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
@@ -39,7 +49,7 @@
 							<tool command="${CXX}" id="cdt.managedbuild.tool.gnu.cross.cpp.linker.1908228857" name="Cross G++ Linker" superClass="cdt.managedbuild.tool.gnu.cross.cpp.linker"/>
 							<tool command="${CXX}" id="cdt.managedbuild.tool.gnu.cross.archiver.57524011" name="Cross GCC Archiver" superClass="cdt.managedbuild.tool.gnu.cross.archiver"/>
 							<tool command="${AS}" id="cdt.managedbuild.tool.gnu.cross.assembler.73719011" name="Cross GCC Assembler" superClass="cdt.managedbuild.tool.gnu.cross.assembler">
-								<option id="gnu.both.asm.option.flags.2058018666" superClass="gnu.both.asm.option.flags" useByScannerDiscovery="false" value="" valueType="string"/>
+								<option id="gnu.both.asm.option.flags.2058018666" name="Assembler flags" superClass="gnu.both.asm.option.flags" useByScannerDiscovery="false" value="" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.1730293809" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>
 						</toolChain>
@@ -72,7 +82,7 @@
 							<tool id="cdt.managedbuild.tool.gnu.cross.c.compiler.1487612070" name="Cross GCC Compiler" superClass="cdt.managedbuild.tool.gnu.cross.c.compiler">
 								<option defaultValue="gnu.c.optimization.level.most" id="gnu.c.compiler.option.optimization.level.427904560" name="Optimization Level" superClass="gnu.c.compiler.option.optimization.level" useByScannerDiscovery="false" valueType="enumerated"/>
 								<option id="gnu.c.compiler.option.debugging.level.905765908" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level" useByScannerDiscovery="false" value="gnu.c.debugging.level.none" valueType="enumerated"/>
-								<option id="gnu.c.compiler.option.misc.other.1675013126" superClass="gnu.c.compiler.option.misc.other" value="${CFLAGS} -c" valueType="string"/>
+								<option id="gnu.c.compiler.option.misc.other.1675013126" name="Other flags" superClass="gnu.c.compiler.option.misc.other" useByScannerDiscovery="false" value="${CFLAGS} -c" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1065864673" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.cross.cpp.compiler.1941972083" name="Cross G++ Compiler" superClass="cdt.managedbuild.tool.gnu.cross.cpp.compiler">
@@ -80,7 +90,7 @@
 								<option id="gnu.cpp.compiler.option.debugging.level.545045093" name="Debug Level" superClass="gnu.cpp.compiler.option.debugging.level" useByScannerDiscovery="false" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
 							</tool>
 							<tool command="${CXX}" id="cdt.managedbuild.tool.gnu.cross.c.linker.1502781221" name="Cross GCC Linker" superClass="cdt.managedbuild.tool.gnu.cross.c.linker">
-								<option id="gnu.c.link.option.ldflags.2052090185" superClass="gnu.c.link.option.ldflags" value="${LDFLAGS}" valueType="string"/>
+								<option id="gnu.c.link.option.ldflags.2052090185" name="Linker flags" superClass="gnu.c.link.option.ldflags" value="${LDFLAGS}" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.linker.input.880714482" superClass="cdt.managedbuild.tool.gnu.c.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
@@ -89,7 +99,7 @@
 							<tool command="${CXX}" id="cdt.managedbuild.tool.gnu.cross.cpp.linker.1681194186" name="Cross G++ Linker" superClass="cdt.managedbuild.tool.gnu.cross.cpp.linker"/>
 							<tool command="${CXX}" id="cdt.managedbuild.tool.gnu.cross.archiver.232543000" name="Cross GCC Archiver" superClass="cdt.managedbuild.tool.gnu.cross.archiver"/>
 							<tool command="${AS}" id="cdt.managedbuild.tool.gnu.cross.assembler.2088752460" name="Cross GCC Assembler" superClass="cdt.managedbuild.tool.gnu.cross.assembler">
-								<option id="gnu.both.asm.option.flags.1657127343" superClass="gnu.both.asm.option.flags" value="" valueType="string"/>
+								<option id="gnu.both.asm.option.flags.1657127343" name="Assembler flags" superClass="gnu.both.asm.option.flags" value="" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.539488093" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>
 						</toolChain>
@@ -116,4 +126,12 @@
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
 	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
+	<storageModule moduleId="refreshScope" versionNumber="2">
+		<configuration configurationName="Debug">
+			<resource resourceType="PROJECT" workspacePath="/uevent1"/>
+		</configuration>
+		<configuration configurationName="Release">
+			<resource resourceType="PROJECT" workspacePath="/uevent1"/>
+		</configuration>
+	</storageModule>
 </cproject>
