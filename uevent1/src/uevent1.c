@@ -11,8 +11,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>    /* getpid */
+#include <fcntl.h>
 
 #include <sys/socket.h>
+#include <sys/uio.h>
 
 #include <linux/netlink.h>
 #include <linux/connector.h>
@@ -21,8 +23,6 @@
 #include <linux/cn_proc.h>
 
 #include <arpa/inet.h>
-#include <unistd.h>
-#include <fcntl.h>
 
 int sock;
 int ret;
@@ -78,45 +78,6 @@ void install_filter(int sock)
 	setsockopt(sock, SOL_SOCKET, SO_ATTACH_FILTER, &fprog, sizeof(fprog));
 }
 
-static int subscription_message(int pidfd)
-{
-	char buffer[32768];
-	struct nlmsghdr *nlh = (struct nlmsghdr *)buffer;
-	enum proc_cn_mcast_op op = PROC_CN_MCAST_LISTEN;
-	struct cn_msg cn_msg = {
-		.id = {
-			.idx = CN_IDX_PROC,
-			.val = CN_VAL_PROC,
-		},
-		.seq = 0,
-		.ack = 0,
-		.len = sizeof(op),
-	};
-
-	struct iovec iov[3] = {
-		[0] = {
-			.iov_base = buffer,
-			.iov_len = NLMSG_LENGTH(0),
-		},
-		[1] = {
-			.iov_base = &cn_msg,
-			.iov_len = sizeof(cn_msg),
-		},
-		[2] = {
-			.iov_base = &op,
-			.iov_len = sizeof(op),
-		}
-	};
-
-	nlh->nlmsg_len = NLMSG_LENGTH(sizeof(cn_msg) + sizeof(op));
-	nlh->nlmsg_type = NLMSG_DONE;
-	nlh->nlmsg_flags = 0;
-	nlh->nlmsg_seq = 0;
-	nlh->nlmsg_pid = 0;
-
-	return 0;
-}
-
 int main(void)
 {
 	sock = socket(AF_NETLINK, SOCK_DGRAM | SOCK_NONBLOCK | SOCK_CLOEXEC, NETLINK_KOBJECT_UEVENT);
@@ -167,18 +128,7 @@ int main(void)
 	iov[2].iov_base = &op;
 	iov[2].iov_len = sizeof(op);
 
-	//writev(sock, iov, 3);
-
-	/*
-	 * This structure contains parameter information for sendmsg.
-	 */
-	struct msghdr msg;
-	memset(&msg, 0, sizeof(msg));
-	msg.msg_name = &src_addr;
-	msg.msg_namelen = sizeof(src_addr);
-	msg.msg_iov = &iov[0];
-	msg.msg_iovlen = 3;
-	sendmsg(sock, &msg, 0);
+	writev(sock, iov, 3);
 
 	printf("Waiting for netlink messages from the kernel.\n");
 
