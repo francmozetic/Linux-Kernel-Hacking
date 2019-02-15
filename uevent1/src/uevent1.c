@@ -1,7 +1,7 @@
 /**
  * @file: uevent1.c
  * @author: Aleksander Mozetic
- * @date: 10 February 2019
+ * @date: 15 February 2019
  * @version: 1.2.2.0
  * @copyright: 2019 IndigoSoft
  * @brief: A userspace application for monitoring kernelspace uevents.
