@@ -217,6 +217,9 @@ static int callback_dump(struct nl_msg *msg, void *arg) {
 	 *	in unspecified units, scaled to 0..100 (u8)
 	 *	@NL80211_BSS_STATUS: status, if this BSS is "used"
 	 *	@NL80211_BSS_SEEN_MS_AGO: age of this BSS entry in ms
+	 * @NL80211_BSS_BEACON_IES: binary attribute containing the raw information
+	 *	elements from a Beacon frame (bin); not present if no Beacon frame has
+	 *	yet been received
 	 */
 	struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
     char mac_addr[20];
