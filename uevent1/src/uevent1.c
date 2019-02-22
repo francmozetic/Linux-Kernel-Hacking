@@ -215,6 +215,7 @@ static int callback_dump(struct nl_msg *msg, void *arg) {
 	 *	in mBm (100 * dBm) (s32)
 	 *	@NL80211_BSS_SIGNAL_UNSPEC: signal strength of the probe response/beacon
 	 *	in unspecified units, scaled to 0..100 (u8)
+	 *	@NL80211_BSS_STATUS: status, if this BSS is "used"
 	 */
 
 	struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
