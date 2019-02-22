@@ -4,7 +4,7 @@
  * @date: 15 February 2019
  * @version: 1.2.2.0
  * @copyright: 2019 IndigoSoft
- * @brief: A userspace application for monitoring kernelspace uevents.
+ * @brief: A userspace application for wireless interface scanning.
 */
 
 #include <stdio.h>
@@ -200,8 +200,17 @@ static int callback_trigger(struct nl_msg *msg, void *arg) {
 }
 
 static int callback_dump(struct nl_msg *msg, void *arg) {
-    // Called by the kernel with a dump of the successful scan's data. Called for each SSID.
-    struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
+    /* Called by the kernel with a dump of the successful scan's data. Called for each SSID.
+	 * @NL80211_BSS_BSSID: BSSID of the BSS (6 octets)
+	 * @NL80211_BSS_FREQUENCY: frequency in MHz (u32)
+	 * @NL80211_BSS_TSF: TSF of the received probe response/beacon (u64)
+	 *	(if @NL80211_BSS_PRESP_DATA is present then this is known to be
+	 *	from a probe response, otherwise it may be from the same beacon
+	 *	that the NL80211_BSS_BEACON_TSF will be from)
+	 * @NL80211_BSS_BEACON_INTERVAL: beacon interval of the (I)BSS (u16)
+	 * @NL80211_BSS_CAPABILITY: capability field (CPU order, u16)
+	 */
+	struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
     char mac_addr[20];
     struct nlattr *tb[NL80211_ATTR_MAX + 1];
     struct nlattr *bss[NL80211_BSS_MAX + 1];
