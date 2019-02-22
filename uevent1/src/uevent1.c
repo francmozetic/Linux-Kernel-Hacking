@@ -200,7 +200,7 @@ static int callback_trigger(struct nl_msg *msg, void *arg) {
 }
 
 static int callback_dump(struct nl_msg *msg, void *arg) {
-    /* Called by the kernel with a dump of the successful scan's data. Called for each SSID.
+	/* Called by the kernel with a dump of the successful scan's data. Called for each SSID.
 	 * @NL80211_BSS_BSSID: BSSID of the BSS (6 octets)
 	 * @NL80211_BSS_FREQUENCY: frequency in MHz (u32)
 	 * @NL80211_BSS_TSF: TSF of the received probe response/beacon (u64)
@@ -209,7 +209,10 @@ static int callback_dump(struct nl_msg *msg, void *arg) {
 	 *	that the NL80211_BSS_BEACON_TSF will be from)
 	 * @NL80211_BSS_BEACON_INTERVAL: beacon interval of the (I)BSS (u16)
 	 * @NL80211_BSS_CAPABILITY: capability field (CPU order, u16)
+	 * @NL80211_BSS_INFORMATION_ELEMENTS: binary attribute containing the
+	 *	raw information elements from the probe response/beacon (bin);
 	 */
+
 	struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
     char mac_addr[20];
     struct nlattr *tb[NL80211_ATTR_MAX + 1];
