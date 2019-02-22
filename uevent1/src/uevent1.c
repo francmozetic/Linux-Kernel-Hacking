@@ -216,8 +216,8 @@ static int callback_dump(struct nl_msg *msg, void *arg) {
 	 *	@NL80211_BSS_SIGNAL_UNSPEC: signal strength of the probe response/beacon
 	 *	in unspecified units, scaled to 0..100 (u8)
 	 *	@NL80211_BSS_STATUS: status, if this BSS is "used"
+	 *	@NL80211_BSS_SEEN_MS_AGO: age of this BSS entry in ms
 	 */
-
 	struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
     char mac_addr[20];
     struct nlattr *tb[NL80211_ATTR_MAX + 1];
