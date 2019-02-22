@@ -211,6 +211,10 @@ static int callback_dump(struct nl_msg *msg, void *arg) {
 	 * @NL80211_BSS_CAPABILITY: capability field (CPU order, u16)
 	 * @NL80211_BSS_INFORMATION_ELEMENTS: binary attribute containing the
 	 *	raw information elements from the probe response/beacon (bin);
+	 * @NL80211_BSS_SIGNAL_MBM: signal strength of probe response/beacon
+	 *	in mBm (100 * dBm) (s32)
+	 *	@NL80211_BSS_SIGNAL_UNSPEC: signal strength of the probe response/beacon
+	 *	in unspecified units, scaled to 0..100 (u8)
 	 */
 
 	struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
