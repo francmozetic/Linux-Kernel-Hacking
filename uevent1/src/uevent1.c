@@ -312,14 +312,14 @@ int do_scan_trigger(struct nl_sock *socket, int if_index, int driver_id) {
     // success or NL80211_CMD_SCAN_ABORTED if another scan was started by another process.
     err = 1;
     ret = nl_send_auto(socket, msg);    // Send the message.
-    printf("NL80211_CMD_TRIGGER_SCAN sent %d bytes to the kernel.\n", ret);
+    printf("NL80211_CMD_TRIGGER_SCAN sent %d bytes to the kernel\n", ret);
     printf("Waiting for scan to complete...\n");
     while (err > 0) ret = nl_recvmsgs(socket, cb);
     if (err < 0) {
-    	printf("WARNING: err has a value of %d.\n", err);
+    	printf("Warning: err has a value of %d\n", err);
     }
     if (ret < 0) {
-    	printf("ERROR: nl_recvmsgs() returned %d (%s).\n", ret, nl_geterror(-ret));
+    	printf("Error: nl_recvmsgs() returned %d (%s)\n", ret, nl_geterror(-ret));
     	return ret;
     }
     while (!results.done) nl_recvmsgs(socket, cb);  // Now wait until the scan is done or aborted.
