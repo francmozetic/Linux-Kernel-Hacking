@@ -24,8 +24,6 @@
 #include <linux/connector.h>
 #include <linux/nl80211.h>
 
-#include <linux/cn_proc.h>
-
 #include <netlink/netlink.h>
 #include <netlink/genl/genl.h>
 #include <netlink/genl/ctrl.h>
