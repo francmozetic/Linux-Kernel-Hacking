@@ -239,14 +239,14 @@ static int callback_dump(struct nl_msg *msg, void *arg) {
         [NL80211_BSS_BEACON_IES] = { },
     };
 
-    // Parse and error check.
+    // Parse and error check
     nla_parse(tb, NL80211_ATTR_MAX, genlmsg_attrdata(gnlh, 0), genlmsg_attrlen(gnlh, 0), NULL);
     if (!tb[NL80211_ATTR_BSS]) {
-        printf("bss info missing!\n");
+        printf("bss info missing\n");
         return NL_SKIP;
     }
     if (nla_parse_nested(bss, NL80211_BSS_MAX, tb[NL80211_ATTR_BSS], bss_policy)) {
-        printf("failed to parse nested attributes!\n");
+        printf("failed to parse nested attributes\n");
         return NL_SKIP;
     }
     if (!bss[NL80211_BSS_BSSID]) return NL_SKIP;
