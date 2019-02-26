@@ -322,7 +322,7 @@ int do_scan_trigger(struct nl_sock *socket, int if_index, int driver_id) {
     	printf("Error: nl_recvmsgs() returned %d (%s)\n", ret, nl_geterror(-ret));
     	return ret;
     }
-    while (!results.done) nl_recvmsgs(socket, cb);    // Now wait until the scan is done or aborted.
+    while (!results.done) nl_recvmsgs(socket, cb);    // Now wait until the scan is done or aborted
     if (results.aborted) {
     	printf("Error: Kernel aborted scan\n");
     	return 1;
@@ -332,7 +332,7 @@ int do_scan_trigger(struct nl_sock *socket, int if_index, int driver_id) {
     // Cleanup
     nlmsg_free(msg);
     nl_cb_put(cb);
-    nl_socket_drop_membership(socket, mcid);    // No longer need this.
+    nl_socket_drop_membership(socket, mcid);    // No longer need this
     return 0;
 }
 
