@@ -10,7 +10,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>    /* getpid */
 #include <ctype.h>    /* isprint */
 #include <fcntl.h>
 #include <errno.h>
