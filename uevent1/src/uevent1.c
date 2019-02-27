@@ -269,10 +269,13 @@ static int callback_dump(struct nl_msg *msg, void *arg) {
     }
     else
     	printf("NaN,");
+    if (bss[NL80211_BSS_INFORMATION_ELEMENTS])
+    	print_ssid(nla_data(bss[NL80211_BSS_INFORMATION_ELEMENTS]), nla_len(bss[NL80211_BSS_INFORMATION_ELEMENTS]));
+    else
+    	printf("NaN,");
 
 
 
-    print_ssid(nla_data(bss[NL80211_BSS_INFORMATION_ELEMENTS]), nla_len(bss[NL80211_BSS_INFORMATION_ELEMENTS]));
     printf("\n");
 
     return NL_SKIP;
