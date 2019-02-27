@@ -359,7 +359,10 @@ int main(void)
     ret = nl_recvmsgs_default(socket);    // Retrieve the kernel's answer (callback_dump() prints SSIDs to stdout)
     nlmsg_free(msg);
 
+    if (ret < 0) {
+    	printf("Error: nl_recvmsgs_default() returned %d (%s)\n", ret, nl_geterror(-ret));
+    	return ret;
+    }
 
-
-	return EXIT_SUCCESS;
+    return 0;
 }
