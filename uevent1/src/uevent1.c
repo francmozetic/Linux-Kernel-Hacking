@@ -263,6 +263,12 @@ static int callback_dump(struct nl_msg *msg, void *arg) {
     }
     else
     	printf("NaN,");
+    if (bss[NL80211_BSS_SIGNAL_MBM]) {
+    	int s = nla_get_u32(bss[NL80211_BSS_SIGNAL_MBM]);
+    	printf("%d.%.2d,", s/100, s%100);
+    }
+    else
+    	printf("NaN,");
 
 
 
