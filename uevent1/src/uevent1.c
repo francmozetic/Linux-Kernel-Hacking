@@ -247,10 +247,19 @@ static int callback_dump(struct nl_msg *msg, void *arg) {
     if (!bss[NL80211_BSS_BSSID]) return NL_SKIP;
     if (!bss[NL80211_BSS_INFORMATION_ELEMENTS]) return NL_SKIP;
 
-    // Start printing
-    mac_addr_n2a(mac_addr, nla_data(bss[NL80211_BSS_BSSID]));
-    printf("%s, ", mac_addr);
-    printf("%d MHz, ", nla_get_u32(bss[NL80211_BSS_FREQUENCY]));
+    if (bss[NL80211_BSS_FREQUENCY])
+      printf("%d,", nla_get_u32(bss[NL80211_BSS_FREQUENCY]));
+    else
+      printf("NaN,");
+    if (bss[NL80211_BSS_BSSID]) {
+         mac_addr_n2a(mac_addr, nla_data(bss[NL80211_BSS_BSSID]));
+         printf("%s,", mac_addr);
+       }
+     else
+       printf("NaN,");
+
+
+
     print_ssid(nla_data(bss[NL80211_BSS_INFORMATION_ELEMENTS]), nla_len(bss[NL80211_BSS_INFORMATION_ELEMENTS]));
     printf("\n");
 
