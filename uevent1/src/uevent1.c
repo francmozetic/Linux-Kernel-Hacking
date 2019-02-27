@@ -257,6 +257,12 @@ static int callback_dump(struct nl_msg *msg, void *arg) {
        }
      else
        printf("NaN,");
+    if (bss[NL80211_BSS_SEEN_MS_AGO]) {
+    	int s = nla_get_u32(bss[NL80211_BSS_SEEN_MS_AGO]);
+    	printf("%d,", s);
+    }
+    else
+    	printf("NaN,");
 
 
 
