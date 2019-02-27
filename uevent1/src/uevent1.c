@@ -13,7 +13,6 @@
 #include <ctype.h>    /* isprint */
 #include <fcntl.h>
 #include <errno.h>
-#include <stddef.h>
 
 #include <sys/uio.h>
 #include <net/if.h>
