@@ -350,11 +350,11 @@ int main(void)
     }
 
     // Now get info for all SSIDs detected.
-    struct nl_msg *msg = nlmsg_alloc();    // Allocate a message.
-    genlmsg_put(msg, 0, 0, driver_id, 0, NLM_F_DUMP, NL80211_CMD_GET_SCAN, 0);    // Setup which command to run.
-    nla_put_u32(msg, NL80211_ATTR_IFINDEX, if_index);    // Add message attribute, which interface to use.
-    nl_socket_modify_cb(socket, NL_CB_VALID, NL_CB_CUSTOM, callback_dump, NULL);    // Add the callback.
-    int ret = nl_send_auto(socket, msg);    // Send the message.
+    struct nl_msg *msg = nlmsg_alloc();    // Allocate a message
+    genlmsg_put(msg, 0, 0, driver_id, 0, NLM_F_DUMP, NL80211_CMD_GET_SCAN, 0);    // Setup which command to run
+    nla_put_u32(msg, NL80211_ATTR_IFINDEX, if_index);    // Add message attribute, which interface to use
+    nl_socket_modify_cb(socket, NL_CB_VALID, NL_CB_CUSTOM, callback_dump, NULL);    // Add the callback
+    int ret = nl_send_auto(socket, msg);    // Send the message
     printf("NL80211_CMD_GET_SCAN sent %d bytes to the kernel.\n", ret);
     ret = nl_recvmsgs_default(socket);    // Retrieve the kernel's answer (callback_dump() prints SSIDs to stdout)
     nlmsg_free(msg);
