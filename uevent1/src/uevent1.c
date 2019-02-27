@@ -345,7 +345,7 @@ int main(void)
     // Issue NL80211_CMD_TRIGGER_SCAN to the kernel and wait for it to finish
     int err = do_scan_trigger(socket, if_index, driver_id);
     if (err != 0) {
-    	printf("do_scan_trigger() failed with %d.\n", err);
+    	printf("do_scan_trigger() failed with %d\n", err);
     	return err;
     }
 
@@ -355,7 +355,7 @@ int main(void)
     nla_put_u32(msg, NL80211_ATTR_IFINDEX, if_index);    // Add message attribute, which interface to use
     nl_socket_modify_cb(socket, NL_CB_VALID, NL_CB_CUSTOM, callback_dump, NULL);    // Add the callback
     int ret = nl_send_auto(socket, msg);    // Send the message
-    printf("NL80211_CMD_GET_SCAN sent %d bytes to the kernel.\n", ret);
+    printf("NL80211_CMD_GET_SCAN sent %d bytes to the kernel\n", ret);
     ret = nl_recvmsgs_default(socket);    // Retrieve the kernel's answer (callback_dump() prints SSIDs to stdout)
     nlmsg_free(msg);
 
