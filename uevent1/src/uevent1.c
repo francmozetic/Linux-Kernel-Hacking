@@ -269,7 +269,6 @@ static int callback_dump(struct nl_msg *msg, void *arg) {
     if (!bss[NL80211_BSS_BSSID]) return NL_SKIP;
     if (!bss[NL80211_BSS_INFORMATION_ELEMENTS]) return NL_SKIP;
 
-    // Time Vector
     int *time_vec;
     time_vec = time_numbers( );
     printf("%i:%i:%i:%i:%i:%i,", time_vec[0], time_vec[1], time_vec[2], time_vec[3], time_vec[4], time_vec[5]);
@@ -300,8 +299,6 @@ static int callback_dump(struct nl_msg *msg, void *arg) {
     	print_ssid(nla_data(bss[NL80211_BSS_INFORMATION_ELEMENTS]), nla_len(bss[NL80211_BSS_INFORMATION_ELEMENTS]));
     else
     	printf("NaN,");
-
-
 
     printf("\n");
 
