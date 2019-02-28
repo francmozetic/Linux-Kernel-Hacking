@@ -384,16 +384,17 @@ int do_scan_trigger(struct nl_sock *socket, int if_index, int driver_id) {
 
 int main(void)
 {
-	// Use this wireless interface for scanning
+	// Use this wireless interface for scanning.
 	int if_index = if_nametoindex("wlan0");
-	// Open socket to kernel
-	// Allocate new netlink socket in memory
+	// Open socket to kernel.
+	// Allocate new netlink socket in memory.
 	struct nl_sock *socket = nl_socket_alloc();
-	// Create file descriptor and bind socket
+	// Create file descriptor and bind socket.
 	genl_connect(socket);
-    int driver_id = genl_ctrl_resolve(socket, "nl80211");
+	// Resolve Generic Netlink family name to numeric identifier (driver_id in this case).
+	int driver_id = genl_ctrl_resolve(socket, "nl80211");
 
-    // Issue NL80211_CMD_TRIGGER_SCAN to the kernel and wait for it to finish
+    // Issue NL80211_CMD_TRIGGER_SCAN to the kernel and wait for it to finish.
     int err = do_scan_trigger(socket, if_index, driver_id);
     if (err != 0) {
     	printf("do_scan_trigger() failed with %d\n", err);
