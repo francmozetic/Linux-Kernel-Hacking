@@ -1,7 +1,7 @@
 /**
  * @file: uevent1.c
  * @author: Aleksander Mozetic
- * @date: 15 February 2019
+ * @date: 28 February 2019
  * @version: 1.2.2.0
  * @copyright: 2019 IndigoSoft
  * @brief: A userspace application for wireless interface scanning.
@@ -32,10 +32,10 @@ int *time_numbers ()
   time_t now;
   int *value;
 
-  now = time ( 0 );
-  tm_ptr = localtime ( &now );
+  now = time(0);
+  tm_ptr = localtime(&now);
 
-  value = ( int * ) malloc ( 6 * sizeof ( int ) );
+  value = (int *)malloc(6 * sizeof(int));
 
   value[0] = 1900 + tm_ptr->tm_year;
   value[1] = 1 + tm_ptr->tm_mon;
@@ -378,7 +378,7 @@ int do_scan_trigger(struct nl_sock *socket, int if_index, int driver_id) {
     // Cleanup
     nlmsg_free(msg);
     nl_cb_put(cb);
-    nl_socket_drop_membership(socket, mcid);    // No longer need this
+    nl_socket_drop_membership(socket, mcid);
     return 0;
 }
 
