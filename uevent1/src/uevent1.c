@@ -116,10 +116,13 @@ static int family_handler(struct nl_msg *msg, void *arg) {
 }
 
 int nl_get_multicast_id(struct nl_sock *sock, const char *family, const char *group) {
-    struct nl_msg *msg;
+	struct nl_msg *msg;
     struct nl_cb *cb;
     int ret, ctrlid;
-    struct handler_args grp = { .group = group, .id = -ENOENT, };
+    struct handler_args grp = {
+    		.group = group,
+			.id = -ENOENT,
+    };
 
     msg = nlmsg_alloc();
     if (!msg) return -ENOMEM;
@@ -131,7 +134,6 @@ int nl_get_multicast_id(struct nl_sock *sock, const char *family, const char *gr
     }
 
     ctrlid = genl_ctrl_resolve(sock, "nlctrl");
-
     genlmsg_put(msg, 0, 0, ctrlid, 0, 0, CTRL_CMD_GETFAMILY, 0);
 
     ret = -ENOBUFS;
@@ -141,21 +143,19 @@ int nl_get_multicast_id(struct nl_sock *sock, const char *family, const char *gr
     if (ret < 0) goto out;
 
     ret = 1;
-
     nl_cb_err(cb, NL_CB_CUSTOM, error_handler, &ret);
     nl_cb_set(cb, NL_CB_ACK, NL_CB_CUSTOM, ack_handler, &ret);
     nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, family_handler, &grp);
 
     while (ret > 0) nl_recvmsgs(sock, cb);
-
     if (ret == 0) ret = grp.id;
 
-    nla_put_failure:
-        out:
-            nl_cb_put(cb);
-        out_fail_cb:
-            nlmsg_free(msg);
-            return ret;
+nla_put_failure:
+out:
+	nl_cb_put(cb);
+out_fail_cb:
+	nlmsg_free(msg);
+	return ret;
 }
 
 void mac_addr_n2a(char *mac_addr, unsigned char *arg) {
@@ -316,6 +316,7 @@ int do_scan_trigger(struct nl_sock *socket, int if_index, int driver_id) {
     struct nl_msg *ssids_to_scan;
     int err;
     int ret;
+
     int mcid = nl_get_multicast_id(socket, "nl80211", "scan");
     nl_socket_add_membership(socket, mcid);
 
