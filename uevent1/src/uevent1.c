@@ -319,21 +319,21 @@ int do_scan_trigger(struct nl_sock *socket, int if_index, int driver_id) {
     int mcid = nl_get_multicast_id(socket, "nl80211", "scan");
     nl_socket_add_membership(socket, mcid);
 
-    // Allocate the messages and callback handler
+    // Allocate the messages and callback handler.
     msg = nlmsg_alloc();
     if (!msg) {
-        printf("Failed to allocate netlink message for msg\n");
+        printf("Failed to allocate netlink message for msg.\n");
         return -ENOMEM;
     }
     ssids_to_scan = nlmsg_alloc();
     if (!ssids_to_scan) {
-        printf("Failed to allocate netlink message for ssids_to_scan\n");
+        printf("Failed to allocate netlink message for ssids_to_scan.\n");
         nlmsg_free(msg);
         return -ENOMEM;
     }
     cb = nl_cb_alloc(NL_CB_DEFAULT);
     if (!cb) {
-        printf("Failed to allocate netlink callbacks\n");
+        printf("Failed to allocate netlink callbacks.\n");
         nlmsg_free(msg);
         nlmsg_free(ssids_to_scan);
         return -ENOMEM;
@@ -349,28 +349,30 @@ int do_scan_trigger(struct nl_sock *socket, int if_index, int driver_id) {
     nl_cb_err(cb, NL_CB_CUSTOM, error_handler, &err);
     nl_cb_set(cb, NL_CB_FINISH, NL_CB_CUSTOM, finish_handler, &err);
     nl_cb_set(cb, NL_CB_ACK, NL_CB_CUSTOM, ack_handler, &err);
-    nl_cb_set(cb, NL_CB_SEQ_CHECK, NL_CB_CUSTOM, no_seq_check, NULL);    // No sequence checking for multicast messages.
+    nl_cb_set(cb, NL_CB_SEQ_CHECK, NL_CB_CUSTOM, no_seq_check, NULL);    // No sequence checking for multicast messages
 
     // Send NL80211_CMD_TRIGGER_SCAN to start the scan. The kernel may reply with NL80211_CMD_NEW_SCAN_RESULTS on
     // success or NL80211_CMD_SCAN_ABORTED if another scan was started by another process.
     err = 1;
-    ret = nl_send_auto(socket, msg);    // Send the message.
-    printf("NL80211_CMD_TRIGGER_SCAN sent %d bytes to the kernel\n", ret);
+    ret = nl_send_auto(socket, msg);    // Send the message
+    printf("NL80211_CMD_TRIGGER_SCAN sent %d bytes to the kernel.\n", ret);
     printf("Waiting for scan to complete...\n");
     while (err > 0) ret = nl_recvmsgs(socket, cb);
     if (err < 0) {
-    	printf("Warning: err has a value of %d\n", err);
+    	printf("Warning: err has a value of %d.\n", err);
     }
     if (ret < 0) {
-    	printf("Error: nl_recvmsgs() returned %d (%s)\n", ret, nl_geterror(-ret));
+    	printf("Error: nl_recvmsgs() returned %d (%s).\n", ret, nl_geterror(-ret));
     	return ret;
     }
-    while (!results.done) nl_recvmsgs(socket, cb);    // Now wait until the scan is done or aborted
+
+    // Now wait until the scan is done or aborted.
+    while (!results.done) nl_recvmsgs(socket, cb);
     if (results.aborted) {
-    	printf("Error: Kernel aborted scan\n");
+    	printf("Error: Kernel aborted scan.\n");
     	return 1;
     }
-    printf("Scan is done\n");
+    printf("Scan is done.\n");
 
     // Cleanup
     nlmsg_free(msg);
@@ -394,7 +396,7 @@ int main(void)
     // Issue NL80211_CMD_TRIGGER_SCAN to the kernel and wait for it to finish.
     int err = do_scan_trigger(socket, if_index, driver_id);
     if (err != 0) {
-    	printf("do_scan_trigger() failed with %d\n", err);
+    	printf("do_scan_trigger() failed with %d.\n", err);
     	return err;
     }
 
