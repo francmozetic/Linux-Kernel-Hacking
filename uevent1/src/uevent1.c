@@ -12,6 +12,7 @@
 #include <string.h>
 #include <ctype.h>    /* isprint */
 #include <fcntl.h>
+#include <time.h>
 #include <errno.h>
 
 #include <sys/uio.h>
@@ -24,6 +25,27 @@
 #include <netlink/netlink.h>
 #include <netlink/genl/genl.h>
 #include <netlink/genl/ctrl.h>
+
+int *time_numbers ()
+{
+  const struct tm *tm_ptr;
+  time_t now;
+  int *value;
+
+  now = time ( 0 );
+  tm_ptr = localtime ( &now );
+
+  value = ( int * ) malloc ( 6 * sizeof ( int ) );
+
+  value[0] = 1900 + tm_ptr->tm_year;
+  value[1] = 1 + tm_ptr->tm_mon;
+  value[2] = tm_ptr->tm_mday;
+  value[3] = tm_ptr->tm_hour;
+  value[4] = tm_ptr->tm_min;
+  value[5] = tm_ptr->tm_sec;
+
+  return value;
+}
 
 struct trigger_results {
     int done;
@@ -246,6 +268,11 @@ static int callback_dump(struct nl_msg *msg, void *arg) {
     }
     if (!bss[NL80211_BSS_BSSID]) return NL_SKIP;
     if (!bss[NL80211_BSS_INFORMATION_ELEMENTS]) return NL_SKIP;
+
+    // Time Vector
+    int *time_vec;
+    time_vec = time_numbers( );
+    printf("%i:%i:%i:%i:%i:%i,", time_vec[0], time_vec[1], time_vec[2], time_vec[3], time_vec[4], time_vec[5]);
 
     if (bss[NL80211_BSS_FREQUENCY])
       printf("%d,", nla_get_u32(bss[NL80211_BSS_FREQUENCY]));
