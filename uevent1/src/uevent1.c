@@ -51,6 +51,59 @@ int *time_numbers ()
   return value;
 }
 
+static int nlCallback(struct nl_msg* msg, void* arg) {
+	struct nlmsghdr* ret_hdr = nlmsg_hdr(msg);
+	struct genlmsghdr *gnlh = nlmsg_data(ret_hdr);
+
+	printf("nlCallback: Event Commmand: %d\n", gnlh->cmd);
+
+	switch(gnlh->cmd) {
+	case NL80211_CMD_TRIGGER_SCAN :
+		printf("nlCallback: NL80211_CMD_TRIGGER_SCAN \n");
+		break;
+	case NL80211_CMD_SCAN_ABORTED :
+		printf("nlCallback: NL80211_CMD_SCAN_ABORTED \n");
+        break;
+    case NL80211_CMD_NEW_SCAN_RESULTS :
+        printf("nlCallback: NL80211_CMD_NEW_SCAN_RESULTS \n");
+        break;
+    case NL80211_CMD_CONNECT :
+        printf("nlCallback: NL80211_CMD_CONNECT \n");
+        break;
+    case NL80211_CMD_DISCONNECT :
+        printf("nlCallback: NL80211_CMD_DISCONNECT \n");
+        break;
+    case NL80211_CMD_NEW_STATION:
+        printf("nlCallback: NL80211_CMD_NEW_STATION \n");
+        break;
+    case NL80211_CMD_DEL_STATION:
+        printf("nlCallback: NL80211_CMD_DEL_STATION\n");
+        break;
+    case NL80211_CMD_AUTHENTICATE:
+        printf("nlCallback: NL80211_CMD_AUTHENTICATE\n");
+        break;
+    case NL80211_CMD_DEAUTHENTICATE:
+        printf("nlCallback: NL80211_CMD_DEAUTHENTICATE\n");
+        break;
+    case NL80211_CMD_ASSOCIATE:
+        printf("nlCallback: NL80211_CMD_ASSOCIATE\n");
+        break;
+    case NL80211_CMD_DISASSOCIATE:
+        printf("nlCallback: NL80211_CMD_DISASSOCIATE\n");
+        break;
+    case NL80211_CMD_ROAM:
+        printf("nlCallback: NL80211_CMD_ROAM\n");
+        break;
+    default:
+    	printf("nlCallback: Default multicast event: %d\n", gnlh->cmd);
+        return NL_SKIP;
+    }
+
+	return 0;
+}
+
+
+
 struct trigger_results {
     int done;
     int aborted;
