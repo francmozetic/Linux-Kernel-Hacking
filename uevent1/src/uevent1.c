@@ -67,23 +67,9 @@ void mac_addr_n2a(char *mac_addr, unsigned char *arg) {
     }
 }
 
-static void print_frame(struct print_event_args *args, struct nlattr *attr)
-{
-	uint8_t *frame;
-	size_t len;
-	unsigned int i;
-	char macbuf[6*3];
-	uint16_t tmp;
-
-
-
-}
-
 static int nlCallback(struct nl_msg* msg, void* arg) {
-	struct nlmsghdr* ret_hdr = nlmsg_hdr(msg);
-	struct genlmsghdr *gnlh = nlmsg_data(ret_hdr);
+	struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
 	struct nlattr *tb[NL80211_ATTR_MAX + 1];
-	struct print_event_args *args = arg;
 	char macbuf[6*3];
 
 	printf("nlCallback: event commmand: %d\n", gnlh->cmd);
@@ -104,7 +90,7 @@ static int nlCallback(struct nl_msg* msg, void* arg) {
 	case NL80211_CMD_AUTHENTICATE:
 		printf("nlCallback: auth");
 		if (tb[NL80211_ATTR_FRAME])
-			print_frame(args, tb[NL80211_ATTR_FRAME]);
+			printf(": print frame");
 		else if (tb[NL80211_ATTR_TIMED_OUT])
 			printf(": timed out");
 		else
@@ -114,13 +100,34 @@ static int nlCallback(struct nl_msg* msg, void* arg) {
 	case NL80211_CMD_ASSOCIATE:
 		printf("nlCallback: assoc");
 		if (tb[NL80211_ATTR_FRAME])
-			print_frame(args, tb[NL80211_ATTR_FRAME]);
+			printf(": print frame");
 		else if (tb[NL80211_ATTR_TIMED_OUT])
 			printf(": timed out");
 		else
 			printf(": unknown event");
 		printf("\n");
 		break;
+	case NL80211_CMD_DEAUTHENTICATE:
+		printf("nlCallback: deauth");
+		printf(": print frame");
+		printf("\n");
+		break;
+	case NL80211_CMD_DISASSOCIATE:
+		printf("nlCallback: disassoc");
+		printf(": print frame");
+		printf("\n");
+		break;
+	case NL80211_CMD_UNPROT_DEAUTHENTICATE:
+		printf("nlCallback: unprotected deauth");
+		printf(": print frame");
+		printf("\n");
+		break;
+	case NL80211_CMD_UNPROT_DISASSOCIATE:
+		printf("nlCallback: unprotected disassoc");
+		printf(": print frame");
+		printf("\n");
+		break;
+
 
 
     default:
