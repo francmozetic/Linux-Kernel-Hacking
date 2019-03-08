@@ -281,28 +281,33 @@ static int callback_dump(struct nl_msg *msg, void *arg) {
       printf("%d,", nla_get_u32(bss[NL80211_BSS_FREQUENCY]));
     else
       printf("NaN,");
+
     if (bss[NL80211_BSS_BSSID]) {
          mac_addr_n2a(mac_addr, nla_data(bss[NL80211_BSS_BSSID]));
          printf("%s,", mac_addr);
        }
      else
        printf("NaN,");
+
     if (bss[NL80211_BSS_SEEN_MS_AGO]) {
     	int s = nla_get_u32(bss[NL80211_BSS_SEEN_MS_AGO]);
     	printf("%d,", s);
     }
     else
     	printf("NaN,");
+
     if (bss[NL80211_BSS_SIGNAL_MBM]) {
     	int s = nla_get_u32(bss[NL80211_BSS_SIGNAL_MBM]);
     	printf("%d.%.2d,", s/100, s%100);
     }
     else
     	printf("NaN,");
+
     if (bss[NL80211_BSS_INFORMATION_ELEMENTS])
     	print_ssid(nla_data(bss[NL80211_BSS_INFORMATION_ELEMENTS]), nla_len(bss[NL80211_BSS_INFORMATION_ELEMENTS]));
     else
     	printf("NaN,");
+
     if (bss[NL80211_BSS_STATUS]) {
     	switch (nla_get_u32(bss[NL80211_BSS_STATUS])) {
     	case NL80211_BSS_STATUS_AUTHENTICATED:
