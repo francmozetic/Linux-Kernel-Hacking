@@ -51,51 +51,80 @@ int *time_numbers ()
   return value;
 }
 
+void mac_addr_n2a(char *mac_addr, unsigned char *arg) {
+    // From http://git.kernel.org/cgit/linux/kernel/git/jberg/iw.git/tree/util.c.
+    int i, l;
+
+    l = 0;
+    for (i = 0; i < 6; i++) {
+        if (i == 0) {
+            sprintf(mac_addr+l, "%02x", arg[i]);
+            l += 2;
+        } else {
+            sprintf(mac_addr+l, ":%02x", arg[i]);
+            l += 3;
+        }
+    }
+}
+
+static void print_frame(struct print_event_args *args, struct nlattr *attr)
+{
+	uint8_t *frame;
+	size_t len;
+	unsigned int i;
+	char macbuf[6*3];
+	uint16_t tmp;
+
+
+
+}
+
 static int nlCallback(struct nl_msg* msg, void* arg) {
 	struct nlmsghdr* ret_hdr = nlmsg_hdr(msg);
 	struct genlmsghdr *gnlh = nlmsg_data(ret_hdr);
+	struct nlattr *tb[NL80211_ATTR_MAX + 1];
+	struct print_event_args *args = arg;
+	char macbuf[6*3];
 
-	printf("nlCallback: Event Commmand: %d\n", gnlh->cmd);
+	printf("nlCallback: event commmand: %d\n", gnlh->cmd);
 
 	switch(gnlh->cmd) {
-	case NL80211_CMD_TRIGGER_SCAN :
-		printf("nlCallback: NL80211_CMD_TRIGGER_SCAN\n");
+	case NL80211_CMD_NEW_STATION:
+		mac_addr_n2a(macbuf, nla_data(tb[NL80211_ATTR_MAC]));
+		printf("nlCallback: new station %s\n", macbuf);
 		break;
-	case NL80211_CMD_SCAN_ABORTED :
-		printf("nlCallback: NL80211_CMD_SCAN_ABORTED\n");
-        break;
-    case NL80211_CMD_NEW_SCAN_RESULTS :
-        printf("nlCallback: NL80211_CMD_NEW_SCAN_RESULTS\n");
-        break;
-    case NL80211_CMD_CONNECT :
-        printf("nlCallback: NL80211_CMD_CONNECT\n");
-        break;
-    case NL80211_CMD_DISCONNECT :
-        printf("nlCallback: NL80211_CMD_DISCONNECT\n");
-        break;
-    case NL80211_CMD_NEW_STATION:
-        printf("nlCallback: NL80211_CMD_NEW_STATION\n");
-        break;
-    case NL80211_CMD_DEL_STATION:
-        printf("nlCallback: NL80211_CMD_DEL_STATION\n");
-        break;
-    case NL80211_CMD_AUTHENTICATE:
-        printf("nlCallback: NL80211_CMD_AUTHENTICATE\n");
-        break;
-    case NL80211_CMD_DEAUTHENTICATE:
-        printf("nlCallback: NL80211_CMD_DEAUTHENTICATE\n");
-        break;
-    case NL80211_CMD_ASSOCIATE:
-        printf("nlCallback: NL80211_CMD_ASSOCIATE\n");
-        break;
-    case NL80211_CMD_DISASSOCIATE:
-        printf("nlCallback: NL80211_CMD_DISASSOCIATE\n");
-        break;
-    case NL80211_CMD_ROAM:
-        printf("nlCallback: NL80211_CMD_ROAM\n");
-        break;
+	case NL80211_CMD_DEL_STATION:
+		mac_addr_n2a(macbuf, nla_data(tb[NL80211_ATTR_MAC]));
+		printf("nlCallback: del station %s\n", macbuf);
+		break;
+	case NL80211_CMD_JOIN_IBSS:
+		mac_addr_n2a(macbuf, nla_data(tb[NL80211_ATTR_MAC]));
+		printf("nlCallback: IBSS %s joined\n", macbuf);
+		break;
+	case NL80211_CMD_AUTHENTICATE:
+		printf("nlCallback: auth");
+		if (tb[NL80211_ATTR_FRAME])
+			print_frame(args, tb[NL80211_ATTR_FRAME]);
+		else if (tb[NL80211_ATTR_TIMED_OUT])
+			printf(": timed out");
+		else
+			printf(": unknown event");
+		printf("\n");
+		break;
+	case NL80211_CMD_ASSOCIATE:
+		printf("nlCallback: assoc");
+		if (tb[NL80211_ATTR_FRAME])
+			print_frame(args, tb[NL80211_ATTR_FRAME]);
+		else if (tb[NL80211_ATTR_TIMED_OUT])
+			printf(": timed out");
+		else
+			printf(": unknown event");
+		printf("\n");
+		break;
+
+
     default:
-    	printf("nlCallback: Default multicast event: %d\n", gnlh->cmd);
+    	printf("nlCallback: default multicast event: %d\n", gnlh->cmd);
         return NL_SKIP;
     }
 
@@ -212,22 +241,6 @@ out:
 out_fail_cb:
 	nlmsg_free(msg);
 	return ret;
-}
-
-void mac_addr_n2a(char *mac_addr, unsigned char *arg) {
-    // From http://git.kernel.org/cgit/linux/kernel/git/jberg/iw.git/tree/util.c.
-    int i, l;
-
-    l = 0;
-    for (i = 0; i < 6; i++) {
-        if (i == 0) {
-            sprintf(mac_addr+l, "%02x", arg[i]);
-            l += 2;
-        } else {
-            sprintf(mac_addr+l, ":%02x", arg[i]);
-            l += 3;
-        }
-    }
 }
 
 void print_ssid(unsigned char *ie, int ielen) {
