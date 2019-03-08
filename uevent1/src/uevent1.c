@@ -277,24 +277,28 @@ static int callback_dump(struct nl_msg *msg, void *arg) {
     time_vec = time_numbers( );
     printf("%i:%i:%i:%i:%i:%i,", time_vec[0], time_vec[1], time_vec[2], time_vec[3], time_vec[4], time_vec[5]);
 
-    if (bss[NL80211_BSS_FREQUENCY])
-      printf("%d,", nla_get_u32(bss[NL80211_BSS_FREQUENCY]));
-    else
-      printf("NaN,");
+    if (bss[NL80211_BSS_FREQUENCY]) {
+    	int freq = nla_get_u32(bss[NL80211_BSS_FREQUENCY]);
+    	printf("\tfreq: %d\n", freq);
+	}
+    else {
+    	printf("\tNaN\n");
+    }
 
     if (bss[NL80211_BSS_BSSID]) {
-         mac_addr_n2a(mac_addr, nla_data(bss[NL80211_BSS_BSSID]));
-         printf("%s,", mac_addr);
-       }
-     else
-       printf("NaN,");
-
-    if (bss[NL80211_BSS_SEEN_MS_AGO]) {
-    	int s = nla_get_u32(bss[NL80211_BSS_SEEN_MS_AGO]);
-    	printf("%d,", s);
+    	mac_addr_n2a(mac_addr, nla_data(bss[NL80211_BSS_BSSID]));
+    	printf("%s,", mac_addr);
     }
     else
     	printf("NaN,");
+
+    if (bss[NL80211_BSS_SEEN_MS_AGO]) {
+    	int age = nla_get_u32(bss[NL80211_BSS_SEEN_MS_AGO]);
+    	printf("\tlast seen: %d ms ago\n", age);
+	}
+    else {
+    	printf("\tNaN\n");
+    }
 
     if (bss[NL80211_BSS_SIGNAL_MBM]) {
     	int s = nla_get_u32(bss[NL80211_BSS_SIGNAL_MBM]);
@@ -316,8 +320,9 @@ static int callback_dump(struct nl_msg *msg, void *arg) {
 		int age = nla_get_u32(bss[NL80211_BSS_SEEN_MS_AGO]);
 		printf("\tlast seen: %d ms ago\n", age);
 	}
-    else
-    	printf("\tNaN\n");
+	else {
+		printf("\tNaN\n");
+	}
 
 
 
