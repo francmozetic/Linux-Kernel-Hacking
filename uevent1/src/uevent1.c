@@ -298,10 +298,28 @@ static int callback_dump(struct nl_msg *msg, void *arg) {
 
     if (bss[NL80211_BSS_SIGNAL_MBM]) {
     	int s = nla_get_u32(bss[NL80211_BSS_SIGNAL_MBM]);
-    	printf("%d.%.2d,", s/100, s%100);
+    	printf("\tsignal: %d.%.2d dBm\n", s/100, s%100);
     }
+    else {
+    	printf("\tNaN\n");
+    }
+
+    if (bss[NL80211_BSS_SIGNAL_UNSPEC]) {
+    	unsigned char s = nla_get_u8(bss[NL80211_BSS_SIGNAL_UNSPEC]);
+    	printf("\tsignal: %d/100\n", s);
+    }
+    else {
+    	printf("\tNaN\n");
+    }
+
+	if (bss[NL80211_BSS_SEEN_MS_AGO]) {
+		int age = nla_get_u32(bss[NL80211_BSS_SEEN_MS_AGO]);
+		printf("\tlast seen: %d ms ago\n", age);
+	}
     else
-    	printf("NaN,");
+    	printf("\tNaN\n");
+
+
 
     if (bss[NL80211_BSS_INFORMATION_ELEMENTS])
     	print_ssid(nla_data(bss[NL80211_BSS_INFORMATION_ELEMENTS]), nla_len(bss[NL80211_BSS_INFORMATION_ELEMENTS]));
