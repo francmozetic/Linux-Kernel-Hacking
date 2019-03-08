@@ -285,12 +285,20 @@ static int callback_dump(struct nl_msg *msg, void *arg) {
     	printf("\tNaN\n");
     }
 
+    if (bss[NL80211_BSS_BEACON_INTERVAL]) {
+    	printf("\tbeacon interval: %d TUs\n", nla_get_u16(bss[NL80211_BSS_BEACON_INTERVAL]));
+    }
+    else {
+    	printf("\tNaN\n");
+    }
+
     if (bss[NL80211_BSS_BSSID]) {
     	mac_addr_n2a(mac_addr, nla_data(bss[NL80211_BSS_BSSID]));
-    	printf("%s,", mac_addr);
+    	printf("\tmac address: %s\n", mac_addr);
     }
-    else
-    	printf("NaN,");
+    else {
+    	printf("\tNaN\n");
+    }
 
     if (bss[NL80211_BSS_SEEN_MS_AGO]) {
     	int age = nla_get_u32(bss[NL80211_BSS_SEEN_MS_AGO]);
