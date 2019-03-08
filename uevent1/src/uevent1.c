@@ -303,6 +303,22 @@ static int callback_dump(struct nl_msg *msg, void *arg) {
     	print_ssid(nla_data(bss[NL80211_BSS_INFORMATION_ELEMENTS]), nla_len(bss[NL80211_BSS_INFORMATION_ELEMENTS]));
     else
     	printf("NaN,");
+    if (bss[NL80211_BSS_STATUS]) {
+    	switch (nla_get_u32(bss[NL80211_BSS_STATUS])) {
+    	case NL80211_BSS_STATUS_AUTHENTICATED:
+			printf(" -- authenticated");
+			break;
+		case NL80211_BSS_STATUS_ASSOCIATED:
+			printf(" -- associated");
+			break;
+		case NL80211_BSS_STATUS_IBSS_JOINED:
+			printf(" -- joined");
+			break;
+		default:
+			printf(" -- unknown status: %d", nla_get_u32(bss[NL80211_BSS_STATUS]));
+			break;
+		}
+    }
 
     printf("\n");
 
