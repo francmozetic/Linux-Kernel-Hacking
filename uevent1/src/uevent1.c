@@ -59,22 +59,22 @@ static int nlCallback(struct nl_msg* msg, void* arg) {
 
 	switch(gnlh->cmd) {
 	case NL80211_CMD_TRIGGER_SCAN :
-		printf("nlCallback: NL80211_CMD_TRIGGER_SCAN \n");
+		printf("nlCallback: NL80211_CMD_TRIGGER_SCAN\n");
 		break;
 	case NL80211_CMD_SCAN_ABORTED :
-		printf("nlCallback: NL80211_CMD_SCAN_ABORTED \n");
+		printf("nlCallback: NL80211_CMD_SCAN_ABORTED\n");
         break;
     case NL80211_CMD_NEW_SCAN_RESULTS :
-        printf("nlCallback: NL80211_CMD_NEW_SCAN_RESULTS \n");
+        printf("nlCallback: NL80211_CMD_NEW_SCAN_RESULTS\n");
         break;
     case NL80211_CMD_CONNECT :
-        printf("nlCallback: NL80211_CMD_CONNECT \n");
+        printf("nlCallback: NL80211_CMD_CONNECT\n");
         break;
     case NL80211_CMD_DISCONNECT :
-        printf("nlCallback: NL80211_CMD_DISCONNECT \n");
+        printf("nlCallback: NL80211_CMD_DISCONNECT\n");
         break;
     case NL80211_CMD_NEW_STATION:
-        printf("nlCallback: NL80211_CMD_NEW_STATION \n");
+        printf("nlCallback: NL80211_CMD_NEW_STATION\n");
         break;
     case NL80211_CMD_DEL_STATION:
         printf("nlCallback: NL80211_CMD_DEL_STATION\n");
