@@ -551,6 +551,11 @@ out_handle_destroy:
 	return err;
 }
 
+static void nl80211_cleanup(struct nl80211_state *state)
+{
+	nl_socket_free(state->nl_sock);
+}
+
 static int nl80211_listen_events(struct nl80211_state *state, const int n_waits, const __u32 *waits)
 {
 	int mcid, ret;
