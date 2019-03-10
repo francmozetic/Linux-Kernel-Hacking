@@ -30,6 +30,8 @@
 #include <netlink/genl/genl.h>
 #include <netlink/genl/ctrl.h>
 
+#define NETLINK_EXT_ACK			11
+
 int *time_numbers ()
 {
   const struct tm *tm_ptr;
@@ -508,6 +510,47 @@ int do_scan_trigger(struct nl_sock *socket, int if_index, int driver_id) {
     return 0;
 }
 
+struct nl80211_state {
+	struct nl_sock *nl_sock;
+	int nl80211_id;
+};
+
+static int nl80211_init(struct nl80211_state *state)
+{
+	int err;
+
+	state->nl_sock = nl_socket_alloc();
+	if (!state->nl_sock) {
+		fprintf(stderr, "Failed to allocate netlink socket.\n");
+		return -ENOMEM;
+	}
+
+	if (genl_connect(state->nl_sock)) {
+		fprintf(stderr, "Failed to connect to generic netlink.\n");
+		err = -ENOLINK;
+		goto out_handle_destroy;
+	}
+
+	nl_socket_set_buffer_size(state->nl_sock, 8192, 8192);
+
+	/* try to set NETLINK_EXT_ACK to 1, ignoring errors */
+	err = 1;
+	setsockopt(nl_socket_get_fd(state->nl_sock), SOL_NETLINK, NETLINK_EXT_ACK, &err, sizeof(err));
+
+	state->nl80211_id = genl_ctrl_resolve(state->nl_sock, "nl80211");
+	if (state->nl80211_id < 0) {
+		fprintf(stderr, "nl80211 not found.\n");
+		err = -ENOENT;
+		goto out_handle_destroy;
+	}
+
+	return 0;
+
+out_handle_destroy:
+	nl_socket_free(state->nl_sock);
+	return err;
+}
+
 int main(void)
 {
 	// Use this wireless interface for scanning.
@@ -520,7 +563,40 @@ int main(void)
 	// Resolve Generic Netlink family name to numeric identifier (driver_id in this case).
 	int driver_id = genl_ctrl_resolve(socket, "nl80211");
 
-    // Issue NL80211_CMD_TRIGGER_SCAN to the kernel and wait for it to finish.
+	int mcid, ret;
+	// Configuration multicast group
+	mcid = nl_get_multicast_id(socket, "nl80211", "config");
+	if (mcid >= 0) {
+		ret = nl_socket_add_membership(socket, mcid);
+		if (ret)
+			return ret;
+	}
+
+	// Scan multicast group
+	mcid = nl_get_multicast_id(socket, "nl80211", "scan");
+	if (mcid >= 0) {
+		ret = nl_socket_add_membership(socket, mcid);
+		if (ret)
+			return ret;
+	}
+
+	// Regulatory multicast group
+	mcid = nl_get_multicast_id(socket, "nl80211", "regulatory");
+	if (mcid >= 0) {
+		ret = nl_socket_add_membership(socket, mcid);
+		if (ret)
+			return ret;
+	}
+
+	// MLME multicast group
+	mcid = nl_get_multicast_id(socket, "nl80211", "mlme");
+	if (mcid >= 0) {
+		ret = nl_socket_add_membership(socket, mcid);
+		if (ret)
+			return ret;
+	}
+
+	// Issue NL80211_CMD_TRIGGER_SCAN to the kernel and wait for it to finish.
     int err = do_scan_trigger(socket, if_index, driver_id);
     if (err != 0) {
     	printf("do_scan_trigger() failed with %d.\n", err);
@@ -532,7 +608,7 @@ int main(void)
     genlmsg_put(msg, 0, 0, driver_id, 0, NLM_F_DUMP, NL80211_CMD_GET_SCAN, 0);    // Setup which command to run
     nla_put_u32(msg, NL80211_ATTR_IFINDEX, if_index);    // Add message attribute, which interface to use
     nl_socket_modify_cb(socket, NL_CB_VALID, NL_CB_CUSTOM, callback_dump, NULL);    // Add the callback
-    int ret = nl_send_auto(socket, msg);    // Send the message
+    ret = nl_send_auto(socket, msg);    // Send the message
     printf("NL80211_CMD_GET_SCAN sent %d bytes to the kernel.\n", ret);
     ret = nl_recvmsgs_default(socket);    // Retrieve the kernel's answer (callback_dump() prints SSIDs to stdout)
     nlmsg_free(msg);
