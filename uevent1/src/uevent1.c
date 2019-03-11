@@ -639,8 +639,14 @@ static int nl80211_listen_events(struct nl80211_state *state, struct print_event
 		register_handler(nl80211_print, args);
 	}
 
+	wait_ev.cmd = 0;
 
+	while (!wait_ev.cmd)
+		nl_recvmsgs(state->nl_sock, cb);
 
+	nl_cb_put(cb);
+
+	return wait_ev.cmd;
 }
 
 int main(void)
