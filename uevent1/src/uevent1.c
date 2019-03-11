@@ -470,6 +470,7 @@ static int nl80211_print(struct nl_msg* msg, void* arg) {
 	struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
 	struct nlattr *tb[NL80211_ATTR_MAX + 1];
 	char macbuf[6*3];
+	__u16 status;
 
 	printf("nlCallback: event commmand: %d\n", gnlh->cmd);
 
@@ -524,6 +525,26 @@ static int nl80211_print(struct nl_msg* msg, void* arg) {
 	case NL80211_CMD_UNPROT_DISASSOCIATE:
 		printf("nlCallback: unprotected disassoc");
 		printf(": print frame");
+		printf("\n");
+		break;
+	case NL80211_CMD_CONNECT:
+		status = 0;
+		if (tb[NL80211_ATTR_TIMED_OUT])
+			printf("timed out");
+		else if (!tb[NL80211_ATTR_STATUS_CODE])
+			printf("unknown connect status");
+		else if (nla_get_u16(tb[NL80211_ATTR_STATUS_CODE]) == 0)
+			printf("connected");
+		else {
+			status = nla_get_u16(tb[NL80211_ATTR_STATUS_CODE]);
+			printf("failed to connect");
+		}
+		if (tb[NL80211_ATTR_MAC]) {
+			mac_addr_n2a(macbuf, nla_data(tb[NL80211_ATTR_MAC]));
+			printf(" to %s", macbuf);
+		}
+		if (status)
+			printf(", status: %d: %s", status, get_status_str(status));
 		printf("\n");
 		break;
 
