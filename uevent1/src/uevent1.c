@@ -13,6 +13,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
 #include <ctype.h>    /* isprint */
 #include <fcntl.h>
@@ -437,11 +438,24 @@ int do_scan_trigger(struct nl_sock *socket, int if_index, int driver_id) {
     return 0;
 }
 
-void register_handler(int (*handler)(struct nl_msg *, void *), void *data);
+static int (*registered_handler)(struct nl_msg *, void *);
+static void *registered_handler_data;
+
+void register_handler(int (*handler)(struct nl_msg *, void *), void *data)
+{
+	registered_handler = handler;
+	registered_handler_data = data;
+}
 
 struct nl80211_state {
 	struct nl_sock *nl_sock;
 	int nl80211_id;
+};
+
+struct print_event_args {
+	struct timeval ts; /* internal */
+	bool have_ts; /* must be set false */
+	bool frame, time, reltime;
 };
 
 struct wait_event {
@@ -658,7 +672,11 @@ int main(void)
 	if (errnl)
 		return 1;
 
+	struct print_event_args args;
 
+	errnl = nl80211_listen_events(&nlstate, &args);
+	if (errnl)
+		return 1;
 
 	// Use this wireless interface for scanning.
 	int if_index = if_nametoindex("wlan0");
