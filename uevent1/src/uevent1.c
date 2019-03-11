@@ -686,5 +686,7 @@ int main(void)
     	return ret;
     }
 
+    nl80211_cleanup(&nlstate);
+
     return 0;
 }
