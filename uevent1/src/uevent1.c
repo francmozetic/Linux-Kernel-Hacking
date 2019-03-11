@@ -521,7 +521,7 @@ static int nl80211_print(struct nl_msg* msg, void* arg) {
 	return 0;
 }
 
-static int wait_event(struct nl_msg *msg, void *arg)
+static int nl80211_wait(struct nl_msg *msg, void *arg)
 {
 	struct wait_event *wait = arg;
 	struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
@@ -631,10 +631,10 @@ static int nl80211_listen_events(struct nl80211_state *state)
 			wait_ev.n_cmds = n_waits;
 			wait_ev.prints = prints;
 			wait_ev.n_prints = n_prints;
-			register_handler(wait_event, &wait_ev);
+			register_handler(nl80211_wait, &wait_ev);
 		}
 	else {
-		register_handler(print_event, args);
+		register_handler(nl80211_print, args);
 	}
 
 
