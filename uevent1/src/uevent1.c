@@ -69,79 +69,6 @@ void mac_addr_n2a(char *mac_addr, unsigned char *arg) {
     }
 }
 
-static int nlCallback(struct nl_msg* msg, void* arg) {
-	struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
-	struct nlattr *tb[NL80211_ATTR_MAX + 1];
-	char macbuf[6*3];
-
-	printf("nlCallback: event commmand: %d\n", gnlh->cmd);
-
-	switch(gnlh->cmd) {
-	case NL80211_CMD_NEW_STATION:
-		mac_addr_n2a(macbuf, nla_data(tb[NL80211_ATTR_MAC]));
-		printf("nlCallback: new station %s\n", macbuf);
-		break;
-	case NL80211_CMD_DEL_STATION:
-		mac_addr_n2a(macbuf, nla_data(tb[NL80211_ATTR_MAC]));
-		printf("nlCallback: del station %s\n", macbuf);
-		break;
-	case NL80211_CMD_JOIN_IBSS:
-		mac_addr_n2a(macbuf, nla_data(tb[NL80211_ATTR_MAC]));
-		printf("nlCallback: IBSS %s joined\n", macbuf);
-		break;
-	case NL80211_CMD_AUTHENTICATE:
-		printf("nlCallback: auth");
-		if (tb[NL80211_ATTR_FRAME])
-			printf(": print frame");
-		else if (tb[NL80211_ATTR_TIMED_OUT])
-			printf(": timed out");
-		else
-			printf(": unknown event");
-		printf("\n");
-		break;
-	case NL80211_CMD_ASSOCIATE:
-		printf("nlCallback: assoc");
-		if (tb[NL80211_ATTR_FRAME])
-			printf(": print frame");
-		else if (tb[NL80211_ATTR_TIMED_OUT])
-			printf(": timed out");
-		else
-			printf(": unknown event");
-		printf("\n");
-		break;
-	case NL80211_CMD_DEAUTHENTICATE:
-		printf("nlCallback: deauth");
-		printf(": print frame");
-		printf("\n");
-		break;
-	case NL80211_CMD_DISASSOCIATE:
-		printf("nlCallback: disassoc");
-		printf(": print frame");
-		printf("\n");
-		break;
-	case NL80211_CMD_UNPROT_DEAUTHENTICATE:
-		printf("nlCallback: unprotected deauth");
-		printf(": print frame");
-		printf("\n");
-		break;
-	case NL80211_CMD_UNPROT_DISASSOCIATE:
-		printf("nlCallback: unprotected disassoc");
-		printf(": print frame");
-		printf("\n");
-		break;
-
-
-
-    default:
-    	printf("nlCallback: default multicast event: %d\n", gnlh->cmd);
-        return NL_SKIP;
-    }
-
-	return 0;
-}
-
-
-
 struct trigger_results {
     int done;
     int aborted;
@@ -515,6 +442,106 @@ struct nl80211_state {
 	int nl80211_id;
 };
 
+struct wait_event {
+	int n_cmds, n_prints;
+	const __u32 *cmds;
+	const __u32 *prints;
+	__u32 cmd;
+	struct print_event_args *pargs;
+};
+
+static int nl80211_print(struct nl_msg* msg, void* arg) {
+	struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
+	struct nlattr *tb[NL80211_ATTR_MAX + 1];
+	char macbuf[6*3];
+
+	printf("nlCallback: event commmand: %d\n", gnlh->cmd);
+
+	switch(gnlh->cmd) {
+	case NL80211_CMD_NEW_STATION:
+		mac_addr_n2a(macbuf, nla_data(tb[NL80211_ATTR_MAC]));
+		printf("nlCallback: new station %s\n", macbuf);
+		break;
+	case NL80211_CMD_DEL_STATION:
+		mac_addr_n2a(macbuf, nla_data(tb[NL80211_ATTR_MAC]));
+		printf("nlCallback: del station %s\n", macbuf);
+		break;
+	case NL80211_CMD_JOIN_IBSS:
+		mac_addr_n2a(macbuf, nla_data(tb[NL80211_ATTR_MAC]));
+		printf("nlCallback: IBSS %s joined\n", macbuf);
+		break;
+	case NL80211_CMD_AUTHENTICATE:
+		printf("nlCallback: auth");
+		if (tb[NL80211_ATTR_FRAME])
+			printf(": print frame");
+		else if (tb[NL80211_ATTR_TIMED_OUT])
+			printf(": timed out");
+		else
+			printf(": unknown event");
+		printf("\n");
+		break;
+	case NL80211_CMD_ASSOCIATE:
+		printf("nlCallback: assoc");
+		if (tb[NL80211_ATTR_FRAME])
+			printf(": print frame");
+		else if (tb[NL80211_ATTR_TIMED_OUT])
+			printf(": timed out");
+		else
+			printf(": unknown event");
+		printf("\n");
+		break;
+	case NL80211_CMD_DEAUTHENTICATE:
+		printf("nlCallback: deauth");
+		printf(": print frame");
+		printf("\n");
+		break;
+	case NL80211_CMD_DISASSOCIATE:
+		printf("nlCallback: disassoc");
+		printf(": print frame");
+		printf("\n");
+		break;
+	case NL80211_CMD_UNPROT_DEAUTHENTICATE:
+		printf("nlCallback: unprotected deauth");
+		printf(": print frame");
+		printf("\n");
+		break;
+	case NL80211_CMD_UNPROT_DISASSOCIATE:
+		printf("nlCallback: unprotected disassoc");
+		printf(": print frame");
+		printf("\n");
+		break;
+
+
+
+    default:
+    	printf("nlCallback: default multicast event: %d\n", gnlh->cmd);
+        return NL_SKIP;
+    }
+
+	return 0;
+}
+
+static int wait_event(struct nl_msg *msg, void *arg)
+{
+	struct wait_event *wait = arg;
+	struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
+	int i;
+
+	if (wait->pargs) {
+		for (i = 0; i < wait->n_prints; i++) {
+			if (gnlh->cmd == wait->prints[i])
+				nl80211_print(msg, wait->pargs);
+		}
+	}
+
+	for (i = 0; i < wait->n_cmds; i++) {
+		if (gnlh->cmd == wait->cmds[i])
+			wait->cmd = gnlh->cmd;
+	}
+
+	return NL_SKIP;
+}
+
 static int nl80211_init(struct nl80211_state *state)
 {
 	int err;
@@ -556,10 +583,10 @@ static void nl80211_cleanup(struct nl80211_state *state)
 	nl_socket_free(state->nl_sock);
 }
 
-static int nl80211_listen_events(struct nl80211_state *state, const int n_waits, const __u32 *waits)
+static int nl80211_listen_events(struct nl80211_state *state)
 {
 	int mcid, ret;
-	// Configuration multicast group
+	/* Configuration multicast group */
 	mcid = nl_get_multicast_id(state->nl_sock, "nl80211", "config");
 	if (mcid >= 0) {
 		ret = nl_socket_add_membership(state->nl_sock, mcid);
@@ -567,7 +594,7 @@ static int nl80211_listen_events(struct nl80211_state *state, const int n_waits,
 			return ret;
 	}
 
-	// Scan multicast group
+	/* Scan multicast group */
 	mcid = nl_get_multicast_id(state->nl_sock, "nl80211", "scan");
 	if (mcid >= 0) {
 		ret = nl_socket_add_membership(state->nl_sock, mcid);
@@ -575,7 +602,7 @@ static int nl80211_listen_events(struct nl80211_state *state, const int n_waits,
 			return ret;
 	}
 
-	// Regulatory multicast group
+	/* Regulatory multicast group */
 	mcid = nl_get_multicast_id(state->nl_sock, "nl80211", "regulatory");
 	if (mcid >= 0) {
 		ret = nl_socket_add_membership(state->nl_sock, mcid);
@@ -583,12 +610,31 @@ static int nl80211_listen_events(struct nl80211_state *state, const int n_waits,
 			return ret;
 	}
 
-	// MLME multicast group
+	/* MLME multicast group */
 	mcid = nl_get_multicast_id(state->nl_sock, "nl80211", "mlme");
 	if (mcid >= 0) {
 		ret = nl_socket_add_membership(state->nl_sock, mcid);
 		if (ret)
 			return ret;
+	}
+
+	const __u32 *waits = NULL;
+	const int n_waits = 0;
+	const __u32 *prints = NULL;
+	const int n_prints = 0;
+
+	struct nl_cb *cb = nl_cb_alloc(NL_CB_DEFAULT);
+	struct wait_event wait_ev;
+
+	if (n_waits && waits) {
+			wait_ev.cmds = waits;
+			wait_ev.n_cmds = n_waits;
+			wait_ev.prints = prints;
+			wait_ev.n_prints = n_prints;
+			register_handler(wait_event, &wait_ev);
+		}
+	else {
+		register_handler(print_event, args);
 	}
 
 
