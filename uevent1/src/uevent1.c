@@ -437,6 +437,8 @@ int do_scan_trigger(struct nl_sock *socket, int if_index, int driver_id) {
     return 0;
 }
 
+void register_handler(int (*handler)(struct nl_msg *, void *), void *data);
+
 struct nl80211_state {
 	struct nl_sock *nl_sock;
 	int nl80211_id;
@@ -583,7 +585,7 @@ static void nl80211_cleanup(struct nl80211_state *state)
 	nl_socket_free(state->nl_sock);
 }
 
-static int nl80211_listen_events(struct nl80211_state *state)
+static int nl80211_listen_events(struct nl80211_state *state, struct print_event_args *args)
 {
 	int mcid, ret;
 	/* Configuration multicast group */
