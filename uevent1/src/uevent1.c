@@ -645,6 +645,15 @@ static int nl80211_listen_events(struct nl80211_state *state, struct print_event
 
 int main(void)
 {
+	struct nl80211_state nlstate;
+	int errnl;
+
+	errnl = nl80211_init(&nlstate);
+	if (errnl)
+		return 1;
+
+
+
 	// Use this wireless interface for scanning.
 	int if_index = if_nametoindex("wlan0");
 	// Open socket to kernel.
@@ -656,7 +665,7 @@ int main(void)
 	int driver_id = genl_ctrl_resolve(socket, "nl80211");
 
 	// Issue NL80211_CMD_TRIGGER_SCAN to the kernel and wait for it to finish.
-    int err = do_scan_trigger(socket, if_index, driver_id);
+	int err = do_scan_trigger(socket, if_index, driver_id);
     if (err != 0) {
     	printf("do_scan_trigger() failed with %d.\n", err);
     	return err;
