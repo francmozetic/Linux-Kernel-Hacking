@@ -517,16 +517,6 @@ static int nl80211_print(struct nl_msg* msg, void* arg) {
 		printf(": print frame");
 		printf("\n");
 		break;
-	case NL80211_CMD_UNPROT_DEAUTHENTICATE:
-		printf("unprotected deauth");
-		printf(": print frame");
-		printf("\n");
-		break;
-	case NL80211_CMD_UNPROT_DISASSOCIATE:
-		printf("nlCallback: unprotected disassoc");
-		printf(": print frame");
-		printf("\n");
-		break;
 	case NL80211_CMD_CONNECT:
 		status = 0;
 		if (tb[NL80211_ATTR_TIMED_OUT])
@@ -547,8 +537,25 @@ static int nl80211_print(struct nl_msg* msg, void* arg) {
 			printf(", status: %d: %s", status, get_status_str(status));
 		printf("\n");
 		break;
-
-
+	case NL80211_CMD_ROAM:
+		printf("roamed");
+		if (tb[NL80211_ATTR_MAC]) {
+			mac_addr_n2a(macbuf, nla_data(tb[NL80211_ATTR_MAC]));
+			printf(" to %s", macbuf);
+		}
+		printf("\n");
+		break;
+	case NL80211_CMD_DISCONNECT:
+		printf("disconnected");
+		if (tb[NL80211_ATTR_DISCONNECTED_BY_AP])
+			printf(" (by AP)");
+		else
+			printf(" (local request)");
+		if (tb[NL80211_ATTR_REASON_CODE])
+			printf(" reason: %d: %s", nla_get_u16(tb[NL80211_ATTR_REASON_CODE]),
+				get_reason_str(nla_get_u16(tb[NL80211_ATTR_REASON_CODE])));
+		printf("\n");
+		break;
 
     default:
     	printf("default multicast event: %d\n", gnlh->cmd);
