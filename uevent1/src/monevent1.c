@@ -337,7 +337,7 @@ static int callback_dump(struct nl_msg *msg, void *arg) {
     if (bss[NL80211_BSS_INFORMATION_ELEMENTS])
     	print_ssid(nla_data(bss[NL80211_BSS_INFORMATION_ELEMENTS]), nla_len(bss[NL80211_BSS_INFORMATION_ELEMENTS]));
     else
-    	printf("NaN,");
+    	printf("\tNaN,");
 
     if (bss[NL80211_BSS_STATUS]) {
     	switch (nla_get_u32(bss[NL80211_BSS_STATUS])) {
