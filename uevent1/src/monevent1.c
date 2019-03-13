@@ -472,23 +472,23 @@ static int nl80211_print(struct nl_msg* msg, void* arg) {
 	char macbuf[6*3];
 	__u16 status;
 
-	printf("nlCallback: event commmand: %d\n", gnlh->cmd);
+	printf("event commmand: %d\n", gnlh->cmd);
 
 	switch(gnlh->cmd) {
 	case NL80211_CMD_NEW_STATION:
 		mac_addr_n2a(macbuf, nla_data(tb[NL80211_ATTR_MAC]));
-		printf("nlCallback: new station %s\n", macbuf);
+		printf("new station %s\n", macbuf);
 		break;
 	case NL80211_CMD_DEL_STATION:
 		mac_addr_n2a(macbuf, nla_data(tb[NL80211_ATTR_MAC]));
-		printf("nlCallback: del station %s\n", macbuf);
+		printf("del station %s\n", macbuf);
 		break;
 	case NL80211_CMD_JOIN_IBSS:
 		mac_addr_n2a(macbuf, nla_data(tb[NL80211_ATTR_MAC]));
-		printf("nlCallback: IBSS %s joined\n", macbuf);
+		printf("IBSS %s joined\n", macbuf);
 		break;
 	case NL80211_CMD_AUTHENTICATE:
-		printf("nlCallback: auth");
+		printf("auth");
 		if (tb[NL80211_ATTR_FRAME])
 			printf(": print frame");
 		else if (tb[NL80211_ATTR_TIMED_OUT])
@@ -498,7 +498,7 @@ static int nl80211_print(struct nl_msg* msg, void* arg) {
 		printf("\n");
 		break;
 	case NL80211_CMD_ASSOCIATE:
-		printf("nlCallback: assoc");
+		printf("assoc");
 		if (tb[NL80211_ATTR_FRAME])
 			printf(": print frame");
 		else if (tb[NL80211_ATTR_TIMED_OUT])
@@ -508,17 +508,17 @@ static int nl80211_print(struct nl_msg* msg, void* arg) {
 		printf("\n");
 		break;
 	case NL80211_CMD_DEAUTHENTICATE:
-		printf("nlCallback: deauth");
+		printf("deauth");
 		printf(": print frame");
 		printf("\n");
 		break;
 	case NL80211_CMD_DISASSOCIATE:
-		printf("nlCallback: disassoc");
+		printf("disassoc");
 		printf(": print frame");
 		printf("\n");
 		break;
 	case NL80211_CMD_UNPROT_DEAUTHENTICATE:
-		printf("nlCallback: unprotected deauth");
+		printf("unprotected deauth");
 		printf(": print frame");
 		printf("\n");
 		break;
