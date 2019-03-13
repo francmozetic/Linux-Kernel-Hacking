@@ -551,7 +551,7 @@ static int nl80211_print(struct nl_msg* msg, void* arg) {
 
 
     default:
-    	printf("nlCallback: default multicast event: %d\n", gnlh->cmd);
+    	printf("default multicast event: %d\n", gnlh->cmd);
         return NL_SKIP;
     }
 
