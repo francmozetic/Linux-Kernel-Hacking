@@ -634,7 +634,12 @@ static void nl80211_cleanup(struct nl80211_state *state)
 static int nl80211_listen_events(struct nl80211_state *state, struct print_event_args *args)
 {
 	int mcid, ret;
-	/* Configuration multicast group */
+
+	/* Configuration multicast group
+	 * Joins the specified groups using the modern socket option which is
+	 * available since kernel version 2.6.14. It allows joining an almost arbitary
+	 * number of groups without limitation.
+	 */
 	mcid = nl_get_multicast_id(state->nl_sock, "nl80211", "config");
 	if (mcid >= 0) {
 		ret = nl_socket_add_membership(state->nl_sock, mcid);
