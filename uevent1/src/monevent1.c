@@ -169,6 +169,9 @@ int nl_get_multicast_id(struct nl_sock *sock, const char *family, const char *gr
     nl_cb_set(cb, NL_CB_ACK, NL_CB_CUSTOM, ack_handler, &ret);
     nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, family_handler, &grp);
 
+    /* Repeatedly calls nl_recv() or the respective replacement if provided
+     * by the application and parses the received data as netlink messages.
+     */
     while (ret > 0) nl_recvmsgs(sock, cb);
     if (ret == 0) ret = grp.id;
 
@@ -602,6 +605,9 @@ static int nl80211_init(struct nl80211_state *state)
 		goto out_handle_destroy;
 	}
 
+	/* The buffer size used when reading from the netlink socket and thus limiting the
+	 * maximum size of a netlink message that can be read defaults to the size of a memory page.
+	 */
 	nl_socket_set_buffer_size(state->nl_sock, 8192, 8192);
 
 	/* try to set NETLINK_EXT_ACK to 1, ignoring errors */
