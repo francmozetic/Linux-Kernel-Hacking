@@ -121,8 +121,12 @@ static int family_handler(struct nl_msg *msg, void *arg) {
     if (!tb[CTRL_ATTR_MCAST_GROUPS]) return NL_SKIP;
 
     nla_for_each_nested(mcgrp, tb[CTRL_ATTR_MCAST_GROUPS], rem_mcgrp) {  // This is a loop.
-        struct nlattr *tb_mcgrp[CTRL_ATTR_MCAST_GRP_MAX + 1];
+    	struct nlattr *tb_mcgrp[CTRL_ATTR_MCAST_GRP_MAX + 1];
 
+    	/* Create attribute index based on a stream of attributes.
+         * Iterates over the stream of attributes and stores a pointer to each attribute
+         * in the index array using the attribute type as index to the array.
+         */
         nla_parse(tb_mcgrp, CTRL_ATTR_MCAST_GRP_MAX, nla_data(mcgrp), nla_len(mcgrp), NULL);
 
         if (!tb_mcgrp[CTRL_ATTR_MCAST_GRP_NAME] || !tb_mcgrp[CTRL_ATTR_MCAST_GRP_ID]) continue;
