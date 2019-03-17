@@ -608,6 +608,10 @@ static int nl80211_init(struct nl80211_state *state)
 	err = 1;
 	setsockopt(nl_socket_get_fd(state->nl_sock), SOL_NETLINK, NETLINK_EXT_ACK, &err, sizeof(err));
 
+	/* This method resolves the generic netlink family name ("nl80211") to the
+	 * corresponding numeric family identifier. The userspace application must
+	 * send its subsequent messages to the kernel, specifying this id.
+	 */
 	state->nl80211_id = genl_ctrl_resolve(state->nl_sock, "nl80211");
 	if (state->nl80211_id < 0) {
 		fprintf(stderr, "nl80211 not found.\n");
