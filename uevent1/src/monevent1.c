@@ -472,7 +472,7 @@ static int nl80211_print(struct nl_msg* msg, void* arg) {
 	char macbuf[6*3];
 	__u16 status;
 
-	printf("event commmand: %d\n", gnlh->cmd);
+	printf("event command: %d\n", gnlh->cmd);
 
 	switch(gnlh->cmd) {
 	case NL80211_CMD_NEW_STATION:
