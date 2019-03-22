@@ -54,6 +54,9 @@ int main(void) {
 	{
 		recvmsg(sock, &msg, 0);
 		printf("Received message payload: %s\n", (char *)NLMSG_DATA((struct nlmsghdr *)&buffer));
+
+
+
 	}
 	close(	sock);
 	return EXIT_SUCCESS;
