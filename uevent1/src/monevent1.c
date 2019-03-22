@@ -455,6 +455,12 @@ static int print_bss_handler(struct nl_msg *msg, void *arg)
 			printf("\tInformation elements from Probe response frame:\n");
 		print_ies(nla_data(ies), nla_len(ies), params->unknown, params->type);
 	}
+	if (bss[NL80211_BSS_BEACON_IES] && show--) {
+		printf("\tInformation elements from Beacon frame:\n");
+		print_ies(nla_data(bss[NL80211_BSS_BEACON_IES]),
+				nla_len(bss[NL80211_BSS_BEACON_IES]),
+				params->unknown, params->type);
+	}
 
 
 
