@@ -240,6 +240,22 @@ struct scan_params {
 	bool show_both_ie_sets;
 };
 
+#define WLAN_CAPABILITY_ESS    	(1<<0)
+#define WLAN_CAPABILITY_IBSS    (1<<1)
+#define WLAN_CAPABILITY_CF_POLLABLE    (1<<2)
+#define WLAN_CAPABILITY_CF_POLL_REQUEST    (1<<3)
+#define WLAN_CAPABILITY_PRIVACY    (1<<4)
+#define WLAN_CAPABILITY_SHORT_PREAMBLE    (1<<5)
+#define WLAN_CAPABILITY_PBCC    (1<<6)
+#define WLAN_CAPABILITY_CHANNEL_AGILITY    (1<<7)
+#define WLAN_CAPABILITY_SPECTRUM_MGMT    (1<<8)
+#define WLAN_CAPABILITY_QOS    (1<<9)
+#define WLAN_CAPABILITY_SHORT_SLOT_TIME    (1<<10)
+#define WLAN_CAPABILITY_APSD    (1<<11)
+#define WLAN_CAPABILITY_RADIO_MEASURE    (1<<12)
+#define WLAN_CAPABILITY_DSSS_OFDM    (1<<13)
+#define WLAN_CAPABILITY_DEL_BACK    (1<<14)
+#define WLAN_CAPABILITY_IMM_BACK    (1<<15)
 #define WLAN_CAPABILITY_DMG_TYPE_MASK    (3<<0)
 
 #define WLAN_CAPABILITY_DMG_TYPE_IBSS    (1<<0) /* Tx by: STA */
@@ -280,6 +296,42 @@ static void print_capa_dmg(__u16 capa)
 		printf(" SpectrumMgmt");
 	if (capa & WLAN_CAPABILITY_DMG_RADIO_MEASURE)
 		printf(" RadioMeasure");
+}
+
+static void print_capa_non_dmg(__u16 capa)
+{
+	if (capa & WLAN_CAPABILITY_ESS)
+		printf(" ESS");
+	if (capa & WLAN_CAPABILITY_IBSS)
+		printf(" IBSS");
+	if (capa & WLAN_CAPABILITY_CF_POLLABLE)
+		printf(" CfPollable");
+	if (capa & WLAN_CAPABILITY_CF_POLL_REQUEST)
+		printf(" CfPollReq");
+	if (capa & WLAN_CAPABILITY_PRIVACY)
+		printf(" Privacy");
+	if (capa & WLAN_CAPABILITY_SHORT_PREAMBLE)
+		printf(" ShortPreamble");
+	if (capa & WLAN_CAPABILITY_PBCC)
+		printf(" PBCC");
+	if (capa & WLAN_CAPABILITY_CHANNEL_AGILITY)
+		printf(" ChannelAgility");
+	if (capa & WLAN_CAPABILITY_SPECTRUM_MGMT)
+		printf(" SpectrumMgmt");
+	if (capa & WLAN_CAPABILITY_QOS)
+		printf(" QoS");
+	if (capa & WLAN_CAPABILITY_SHORT_SLOT_TIME)
+		printf(" ShortSlotTime");
+	if (capa & WLAN_CAPABILITY_APSD)
+		printf(" APSD");
+	if (capa & WLAN_CAPABILITY_RADIO_MEASURE)
+		printf(" RadioMeasure");
+	if (capa & WLAN_CAPABILITY_DSSS_OFDM)
+		printf(" DSSS-OFDM");
+	if (capa & WLAN_CAPABILITY_DEL_BACK)
+		printf(" DelayedBACK");
+	if (capa & WLAN_CAPABILITY_IMM_BACK)
+		printf(" ImmediateBACK");
 }
 
 static int print_bss_handler(struct nl_msg *msg, void *arg)
