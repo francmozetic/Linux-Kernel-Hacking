@@ -240,6 +240,48 @@ struct scan_params {
 	bool show_both_ie_sets;
 };
 
+#define WLAN_CAPABILITY_DMG_TYPE_MASK    (3<<0)
+
+#define WLAN_CAPABILITY_DMG_TYPE_IBSS    (1<<0) /* Tx by: STA */
+#define WLAN_CAPABILITY_DMG_TYPE_PBSS    (2<<0) /* Tx by: PCP */
+#define WLAN_CAPABILITY_DMG_TYPE_AP    (3<<0) /* Tx by: AP */
+
+#define WLAN_CAPABILITY_DMG_CBAP_ONLY    (1<<2)
+#define WLAN_CAPABILITY_DMG_CBAP_SOURCE    (1<<3)
+#define WLAN_CAPABILITY_DMG_PRIVACY    	(1<<4)
+#define WLAN_CAPABILITY_DMG_ECPAC    (1<<5)
+
+#define WLAN_CAPABILITY_DMG_SPECTRUM_MGMT    (1<<8)
+#define WLAN_CAPABILITY_DMG_RADIO_MEASURE    (1<<12)
+
+static void print_capa_dmg(__u16 capa)
+{
+	switch (capa & WLAN_CAPABILITY_DMG_TYPE_MASK) {
+	case WLAN_CAPABILITY_DMG_TYPE_AP:
+		printf(" DMG_ESS");
+		break;
+	case WLAN_CAPABILITY_DMG_TYPE_PBSS:
+		printf(" DMG_PCP");
+		break;
+	case WLAN_CAPABILITY_DMG_TYPE_IBSS:
+		printf(" DMG_IBSS");
+		break;
+	}
+
+	if (capa & WLAN_CAPABILITY_DMG_CBAP_ONLY)
+		printf(" CBAP_Only");
+	if (capa & WLAN_CAPABILITY_DMG_CBAP_SOURCE)
+		printf(" CBAP_Src");
+	if (capa & WLAN_CAPABILITY_DMG_PRIVACY)
+		printf(" Privacy");
+	if (capa & WLAN_CAPABILITY_DMG_ECPAC)
+		printf(" ECPAC");
+	if (capa & WLAN_CAPABILITY_DMG_SPECTRUM_MGMT)
+		printf(" SpectrumMgmt");
+	if (capa & WLAN_CAPABILITY_DMG_RADIO_MEASURE)
+		printf(" RadioMeasure");
+}
+
 static int print_bss_handler(struct nl_msg *msg, void *arg)
 {
 	struct nlattr *tb[NL80211_ATTR_MAX + 1];
@@ -311,6 +353,44 @@ static int print_bss_handler(struct nl_msg *msg, void *arg)
 		unsigned long long bt;
 		bt = (unsigned long long)nla_get_u64(bss[NL80211_BSS_LAST_SEEN_BOOTTIME]);
 		printf("\tlast seen: %llu.%.3llus [boottime]\n", bt/1000000000, (bt%1000000000)/1000000);
+	}
+
+	if (bss[NL80211_BSS_TSF]) {
+		unsigned long long tsf;
+		tsf = (unsigned long long)nla_get_u64(bss[NL80211_BSS_TSF]);
+		printf("\tTSF: %llu usec (%llud, %.2lld:%.2llu:%.2llu)\n",
+			tsf, tsf/1000/1000/60/60/24, (tsf/1000/1000/60/60) % 24,
+			(tsf/1000/1000/60) % 60, (tsf/1000/1000) % 60);
+	}
+	if (bss[NL80211_BSS_FREQUENCY]) {
+		int freq = nla_get_u32(bss[NL80211_BSS_FREQUENCY]);
+		printf("\tfreq: %d\n", freq);
+		if (freq > 45000)
+			is_dmg = true;
+	}
+	if (bss[NL80211_BSS_BEACON_INTERVAL])
+		printf("\tbeacon interval: %d TUs\n",
+			nla_get_u16(bss[NL80211_BSS_BEACON_INTERVAL]));
+	if (bss[NL80211_BSS_CAPABILITY]) {
+		__u16 capa = nla_get_u16(bss[NL80211_BSS_CAPABILITY]);
+		printf("\tcapability:");
+		if (is_dmg)
+			print_capa_dmg(capa);
+		else
+			print_capa_non_dmg(capa);
+		printf(" (0x%.4x)\n", capa);
+	}
+	if (bss[NL80211_BSS_SIGNAL_MBM]) {
+		int s = nla_get_u32(bss[NL80211_BSS_SIGNAL_MBM]);
+		printf("\tsignal: %d.%.2d dBm\n", s/100, s%100);
+	}
+	if (bss[NL80211_BSS_SIGNAL_UNSPEC]) {
+		unsigned char s = nla_get_u8(bss[NL80211_BSS_SIGNAL_UNSPEC]);
+		printf("\tsignal: %d/100\n", s);
+	}
+	if (bss[NL80211_BSS_SEEN_MS_AGO]) {
+		int age = nla_get_u32(bss[NL80211_BSS_SEEN_MS_AGO]);
+		printf("\tlast seen: %d ms ago\n", age);
 	}
 
 
