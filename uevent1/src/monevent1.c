@@ -336,6 +336,26 @@ static void print_capa_non_dmg(__u16 capa)
 
 static int print_bss_handler(struct nl_msg *msg, void *arg)
 {
+	/* callback_dump() prints SSIDs to stdout.
+	 * @NL80211_BSS_BSSID: BSSID of the BSS (6 octets)
+	 * @NL80211_BSS_FREQUENCY: frequency in MHz (u32)
+	 * @NL80211_BSS_TSF: TSF of the received probe response/beacon (u64)
+	 *	(if @NL80211_BSS_PRESP_DATA is present then this is known to be
+	 *	from a probe response, otherwise it may be from the same beacon
+	 *	that the NL80211_BSS_BEACON_TSF will be from)
+	 * @NL80211_BSS_BEACON_INTERVAL: beacon interval of the (I)BSS (u16)
+	 * @NL80211_BSS_CAPABILITY: capability field (CPU order, u16)
+	 * @NL80211_BSS_INFORMATION_ELEMENTS: binary attribute containing the
+	 *	raw information elements from the probe response/beacon (bin);
+	 * @NL80211_BSS_SIGNAL_MBM: signal strength of probe response/beacon
+	 *	in mBm (100 * dBm) (s32)
+	 *	@NL80211_BSS_SIGNAL_UNSPEC: signal strength of the probe response/beacon
+	 *	in unspecified units, scaled to 0..100 (u8)
+	 *	@NL80211_BSS_STATUS: status, if this BSS is "used"
+	 *	@NL80211_BSS_SEEN_MS_AGO: age of this BSS entry in ms
+	 * @NL80211_BSS_BEACON_IES: binary attribute containing the raw information
+	 *	elements from a Beacon frame (bin)
+	 */
 	struct nlattr *tb[NL80211_ATTR_MAX + 1];
 	struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
 	struct nlattr *bss[NL80211_BSS_MAX + 1];
