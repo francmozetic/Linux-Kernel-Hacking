@@ -229,6 +229,88 @@ static int callback_trigger(struct nl_msg *msg, void *arg) {
     return NL_SKIP;
 }
 
+enum print_ie_type {
+	PRINT_SCAN,
+	PRINT_LINK,
+};
+
+struct scan_params {
+	bool unknown;
+	enum print_ie_type type;
+	bool show_both_ie_sets;
+};
+
+static int print_bss_handler(struct nl_msg *msg, void *arg)
+{
+	struct nlattr *tb[NL80211_ATTR_MAX + 1];
+	struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
+	struct nlattr *bss[NL80211_BSS_MAX + 1];
+	char mac_addr[20], dev[20];
+	static struct nla_policy bss_policy[NL80211_BSS_MAX + 1] = {
+		[NL80211_BSS_TSF] = { .type = NLA_U64 },
+		[NL80211_BSS_FREQUENCY] = { .type = NLA_U32 },
+		[NL80211_BSS_BSSID] = { },
+		[NL80211_BSS_BEACON_INTERVAL] = { .type = NLA_U16 },
+		[NL80211_BSS_CAPABILITY] = { .type = NLA_U16 },
+		[NL80211_BSS_INFORMATION_ELEMENTS] = { },
+		[NL80211_BSS_SIGNAL_MBM] = { .type = NLA_U32 },
+		[NL80211_BSS_SIGNAL_UNSPEC] = { .type = NLA_U8 },
+		[NL80211_BSS_STATUS] = { .type = NLA_U32 },
+		[NL80211_BSS_SEEN_MS_AGO] = { .type = NLA_U32 },
+		[NL80211_BSS_BEACON_IES] = { },
+	};
+
+	struct scan_params *params = arg;
+	int show = params->show_both_ie_sets ? 2 : 1;
+	bool is_dmg = false;
+
+	nla_parse(tb, NL80211_ATTR_MAX, genlmsg_attrdata(gnlh, 0),
+		  genlmsg_attrlen(gnlh, 0), NULL);
+
+	if (!tb[NL80211_ATTR_BSS]) {
+		fprintf(stderr, "bss info missing!\n");
+		return NL_SKIP;
+	}
+	if (nla_parse_nested(bss, NL80211_BSS_MAX,
+			     tb[NL80211_ATTR_BSS],
+			     bss_policy)) {
+		fprintf(stderr, "failed to parse nested attributes!\n");
+		return NL_SKIP;
+	}
+
+	if (!bss[NL80211_BSS_BSSID])
+		return NL_SKIP;
+
+	mac_addr_n2a(mac_addr, nla_data(bss[NL80211_BSS_BSSID]));
+	printf("BSS %s", mac_addr);
+	if (tb[NL80211_ATTR_IFINDEX]) {
+		if_indextoname(nla_get_u32(tb[NL80211_ATTR_IFINDEX]), dev);
+		printf("(on %s)", dev);
+	}
+
+	if (bss[NL80211_BSS_STATUS]) {
+		switch (nla_get_u32(bss[NL80211_BSS_STATUS])) {
+		case NL80211_BSS_STATUS_AUTHENTICATED:
+			printf(" -- authenticated");
+			break;
+		case NL80211_BSS_STATUS_ASSOCIATED:
+			printf(" -- associated");
+			break;
+		case NL80211_BSS_STATUS_IBSS_JOINED:
+			printf(" -- joined");
+			break;
+		default:
+			printf(" -- unknown status: %d",
+				nla_get_u32(bss[NL80211_BSS_STATUS]));
+			break;
+		}
+	}
+	printf("\n");
+
+
+
+}
+
 static int callback_dump(struct nl_msg *msg, void *arg) {
 	/* Called by the kernel with a dump of the successful scan's data. Called for each SSID.
 	 * @NL80211_BSS_BSSID: BSSID of the BSS (6 octets)
@@ -712,6 +794,7 @@ static int nl80211_listen_events(struct nl80211_state *state, struct print_event
 
 int main(void)
 {
+	/*
 	struct nl80211_state nlstate;
 	int errnl;
 
@@ -724,9 +807,9 @@ int main(void)
 	errnl = nl80211_listen_events(&nlstate, &args);
 	if (errnl)
 		return 1;
-
+	*/
 	// Use this wireless interface for scanning.
-	int if_index = if_nametoindex("wlan0");
+	int if_index = if_nametoindex("wlp1s0");
 	// Open socket to kernel.
 	// Allocate new netlink socket in memory.
 	struct nl_sock *socket = nl_socket_alloc();
@@ -756,8 +839,8 @@ int main(void)
     	printf("Error: nl_recvmsgs_default() returned %d (%s).\n", ret, nl_geterror(-ret));
     	return ret;
     }
-
+    /*
     nl80211_cleanup(&nlstate);
-
+	*/
     return 0;
 }
