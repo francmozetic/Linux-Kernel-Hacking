@@ -288,6 +288,12 @@ static void print_supprates(const uint8_t type, uint8_t len, const uint8_t *data
 	printf("\n");
 }
 
+static void print_ds(const uint8_t type, uint8_t len, const uint8_t *data,
+		const struct print_ies_data *ie_buffer)
+{
+	printf(" channel %d\n", data[0]);
+}
+
 static void print_tim(const uint8_t type, uint8_t len, const uint8_t *data,
 		const struct print_ies_data *ie_buffer)
 {
@@ -302,6 +308,66 @@ static void print_ibssatim(const uint8_t type, uint8_t len, const uint8_t *data,
 		const struct print_ies_data *ie_buffer)
 {
 	printf(" %d TUs", (data[1] << 8) + data[0]);
+}
+
+static const char *country_env_str(char environment)
+{
+	switch (environment) {
+	case 'I':
+		return "Indoor only";
+	case 'O':
+		return "Outdoor only";
+	case ' ':
+		return "Indoor/Outdoor";
+	default:
+		return "bogus";
+	}
+}
+
+static void print_country(const uint8_t type, uint8_t len, const uint8_t *data,
+		const struct print_ies_data *ie_buffer)
+{
+	printf(" %.*s", 2, data);
+
+	printf("\tEnvironment: %s\n", country_env_str(data[2]));
+
+	data += 3;
+	len -= 3;
+
+	if (len < 3) {
+		printf("\t\tNo country IE triplets present\n");
+		return;
+	}
+
+	while (len >= 3) {
+		int end_channel;
+		union ieee80211_country_ie_triplet *triplet = (void *) data;
+
+		if (triplet->ext.reg_extension_id >= IEEE80211_COUNTRY_EXTENSION_ID) {
+			printf("\t\tExtension ID: %d Regulatory Class: %d Coverage class: %d (up to %dm)\n",
+			       triplet->ext.reg_extension_id,
+			       triplet->ext.reg_class,
+			       triplet->ext.coverage_class,
+			       triplet->ext.coverage_class * 450);
+
+			data += 3;
+			len -= 3;
+			continue;
+		}
+
+		/* 2 GHz */
+		if (triplet->chans.first_channel <= 14)
+			end_channel = triplet->chans.first_channel + (triplet->chans.num_channels - 1);
+		else
+			end_channel =  triplet->chans.first_channel + (4 * (triplet->chans.num_channels - 1));
+
+		printf("\t\tChannels [%d - %d] @ %d dBm\n", triplet->chans.first_channel, end_channel, triplet->chans.max_power);
+
+		data += 3;
+		len -= 3;
+	}
+
+	return;
 }
 
 static void print_mesh_conf(const uint8_t type, uint8_t len, const uint8_t *data,
@@ -334,12 +400,6 @@ static void print_mesh_conf(const uint8_t type, uint8_t len, const uint8_t *data
 		printf("\t\t\t TBTT Adjusting\n");
 	if (data[6] & 0x40)
 		printf("\t\t\t Mesh Power Save Level\n");
-}
-
-static void print_ds(const uint8_t type, uint8_t len, const uint8_t *data,
-		const struct print_ies_data *ie_buffer)
-{
-	printf(" channel %d\n", data[0]);
 }
 
 static const struct ie_print ieprinters[] = {
