@@ -208,6 +208,8 @@ static int callback_trigger(struct nl_msg *msg, void *arg) {
     return NL_SKIP;
 }
 
+#define BIT(x) (1ULL<<(x))
+
 enum print_ie_type {
 	PRINT_SCAN,
 	PRINT_LINK,
@@ -260,6 +262,31 @@ struct ie_print {
 	uint8_t minlen, maxlen;
 	uint8_t flags;
 };
+
+#define BSS_MEMBERSHIP_SELECTOR_VHT_PHY 126
+#define BSS_MEMBERSHIP_SELECTOR_HT_PHY 127
+
+static void print_supprates(const uint8_t type, uint8_t len,
+		const uint8_t *data, const struct print_ies_data *ie_buffer)
+{
+	int i;
+
+	printf(" ");
+
+	for (i = 0; i < len; i++) {
+		int r = data[i] & 0x7f;
+
+		if (r == BSS_MEMBERSHIP_SELECTOR_VHT_PHY && (data[i] & 0x80))
+			printf("VHT");
+		else if (r == BSS_MEMBERSHIP_SELECTOR_HT_PHY && (data[i] & 0x80))
+			printf("HT");
+		else
+			printf("%d.%d", r/2, 5*(r&1));
+
+		printf("%s ", data[i] & 0x80 ? "*" : "");
+	}
+	printf("\n");
+}
 
 static void print_ds(const uint8_t type, uint8_t len, const uint8_t *data,
 		const struct print_ies_data *ie_buffer)
