@@ -270,6 +270,132 @@ struct scan_params {
 #define WLAN_CAPABILITY_DMG_SPECTRUM_MGMT    (1<<8)
 #define WLAN_CAPABILITY_DMG_RADIO_MEASURE    (1<<12)
 
+struct print_ies_data {
+	unsigned char *ie;
+	int ielen;
+};
+
+struct ie_print {
+	const char *name;
+	void (*print)(const uint8_t type, uint8_t len, const uint8_t *data, const struct print_ies_data *ie_buffer);
+	uint8_t minlen, maxlen;
+	uint8_t flags;
+};
+
+static const struct ie_print ieprinters[] = {
+    [0] = { "SSID", print_ssid, 0, 32, BIT(PRINT_SCAN) | BIT(PRINT_LINK), },
+	[1] = { "Supported rates", print_supprates, 0, 255, BIT(PRINT_SCAN), },
+	[3] = { "DS Parameter set", print_ds, 1, 1, BIT(PRINT_SCAN), },
+	[5] = { "TIM", print_tim, 4, 255, BIT(PRINT_SCAN), },
+	[6] = { "IBSS ATIM window", print_ibssatim, 2, 2, BIT(PRINT_SCAN), },
+	[7] = { "Country", print_country, 3, 255, BIT(PRINT_SCAN), },
+	[11] = { "BSS Load", print_bss_load, 5, 5, BIT(PRINT_SCAN), },
+	[32] = { "Power constraint", print_powerconstraint, 1, 1, BIT(PRINT_SCAN), },
+	[35] = { "TPC report", print_tpcreport, 2, 2, BIT(PRINT_SCAN), },
+	[42] = { "ERP", print_erp, 1, 255, BIT(PRINT_SCAN), },
+	[45] = { "HT capabilities", print_ht_capa, 26, 26, BIT(PRINT_SCAN), },
+	[47] = { "ERP D4.0", print_erp, 1, 255, BIT(PRINT_SCAN), },
+	[74] = { "Overlapping BSS scan params", print_obss_scan_params, 14, 255, BIT(PRINT_SCAN), },
+	[61] = { "HT operation", print_ht_op, 22, 22, BIT(PRINT_SCAN), },
+	[62] = { "Secondary Channel Offset", print_secchan_offs, 1, 1, BIT(PRINT_SCAN), },
+	[191] = { "VHT capabilities", print_vht_capa, 12, 255, BIT(PRINT_SCAN), },
+	[192] = { "VHT operation", print_vht_oper, 5, 255, BIT(PRINT_SCAN), },
+	[48] = { "RSN", print_rsn, 2, 255, BIT(PRINT_SCAN), },
+	[50] = { "Extended supported rates", print_supprates, 0, 255, BIT(PRINT_SCAN), },
+	[113] = { "MESH Configuration", print_mesh_conf, 7, 7, BIT(PRINT_SCAN), },
+	[114] = { "MESH ID", print_ssid, 0, 32, BIT(PRINT_SCAN) | BIT(PRINT_LINK), },
+	[127] = { "Extended capabilities", print_capabilities, 0, 255, BIT(PRINT_SCAN), },
+	[107] = { "802.11u Interworking", print_interworking, 0, 255, BIT(PRINT_SCAN), },
+	[108] = { "802.11u Advertisement", print_11u_advert, 0, 255, BIT(PRINT_SCAN), },
+	[111] = { "802.11u Roaming Consortium", print_11u_rcon, 0, 255, BIT(PRINT_SCAN), },
+};
+
+static void print_vendor(unsigned char len, unsigned char *data,
+			 bool unknown, enum print_ie_type ptype)
+{
+	int i;
+
+	if (len < 3) {
+		printf("\tVendor specific: <too short> data:");
+		for(i = 0; i < len; i++)
+			printf(" %.02x", data[i]);
+		printf("\n");
+		return;
+	}
+
+	if (len >= 4 && memcmp(data, ms_oui, 3) == 0) {
+		if (data[3] < ARRAY_SIZE(wifiprinters) &&
+		    wifiprinters[data[3]].name &&
+		    wifiprinters[data[3]].flags & BIT(ptype)) {
+			print_ie(&wifiprinters[data[3]],
+				 data[3], len - 4, data + 4,
+				 NULL);
+			return;
+		}
+		if (!unknown)
+			return;
+		printf("\tMS/WiFi %#.2x, data:", data[3]);
+		for(i = 0; i < len - 4; i++)
+			printf(" %.02x", data[i + 4]);
+		printf("\n");
+		return;
+	}
+
+	if (len >= 4 && memcmp(data, wfa_oui, 3) == 0) {
+		if (data[3] < ARRAY_SIZE(wfa_printers) &&
+		    wfa_printers[data[3]].name &&
+		    wfa_printers[data[3]].flags & BIT(ptype)) {
+			print_ie(&wfa_printers[data[3]],
+				 data[3], len - 4, data + 4,
+				 NULL);
+			return;
+		}
+		if (!unknown)
+			return;
+		printf("\tWFA %#.2x, data:", data[3]);
+		for(i = 0; i < len - 4; i++)
+			printf(" %.02x", data[i + 4]);
+		printf("\n");
+		return;
+	}
+
+	if (!unknown)
+		return;
+
+	printf("\tVendor specific: OUI %.2x:%.2x:%.2x, data:",
+		data[0], data[1], data[2]);
+	for (i = 3; i < len; i++)
+		printf(" %.2x", data[i]);
+	printf("\n");
+}
+
+void print_ies(unsigned char *ie, int ielen, bool unknown, enum print_ie_type ptype)
+{
+	struct print_ies_data ie_buffer = {
+		.ie = ie,
+		.ielen = ielen };
+
+	while (ielen >= 2 && ielen >= ie[1]) {
+		if (ie[0] < ARRAY_SIZE(ieprinters) &&
+		    ieprinters[ie[0]].name &&
+		    ieprinters[ie[0]].flags & BIT(ptype)) {
+			print_ie(&ieprinters[ie[0]],
+				 ie[0], ie[1], ie + 2, &ie_buffer);
+		} else if (ie[0] == 221 /* vendor */) {
+			print_vendor(ie[1], ie + 2, unknown, ptype);
+		} else if (unknown) {
+			int i;
+
+			printf("\tUnknown IE (%d):", ie[0]);
+			for (i=0; i<ie[1]; i++)
+				printf(" %.2x", ie[2+i]);
+			printf("\n");
+		}
+		ielen -= ie[1] + 2;
+		ie += ie[1] + 2;
+	}
+}
+
 static void print_capa_dmg(__u16 capa)
 {
 	switch (capa & WLAN_CAPABILITY_DMG_TYPE_MASK) {
@@ -334,7 +460,7 @@ static void print_capa_non_dmg(__u16 capa)
 		printf(" ImmediateBACK");
 }
 
-static int print_bss_handler(struct nl_msg *msg, void *arg)
+static int callback_dump(struct nl_msg *msg, void *arg)
 {
 	/* callback_dump() prints SSIDs to stdout.
 	 * @NL80211_BSS_BSSID: BSSID of the BSS (6 octets)
@@ -482,147 +608,7 @@ static int print_bss_handler(struct nl_msg *msg, void *arg)
 				params->unknown, params->type);
 	}
 
-
-
-}
-
-static int callback_dump(struct nl_msg *msg, void *arg) {
-	/* Called by the kernel with a dump of the successful scan's data. Called for each SSID.
-	 * @NL80211_BSS_BSSID: BSSID of the BSS (6 octets)
-	 * @NL80211_BSS_FREQUENCY: frequency in MHz (u32)
-	 * @NL80211_BSS_TSF: TSF of the received probe response/beacon (u64)
-	 *	(if @NL80211_BSS_PRESP_DATA is present then this is known to be
-	 *	from a probe response, otherwise it may be from the same beacon
-	 *	that the NL80211_BSS_BEACON_TSF will be from)
-	 * @NL80211_BSS_BEACON_INTERVAL: beacon interval of the (I)BSS (u16)
-	 * @NL80211_BSS_CAPABILITY: capability field (CPU order, u16)
-	 * @NL80211_BSS_INFORMATION_ELEMENTS: binary attribute containing the
-	 *	raw information elements from the probe response/beacon (bin);
-	 * @NL80211_BSS_SIGNAL_MBM: signal strength of probe response/beacon
-	 *	in mBm (100 * dBm) (s32)
-	 *	@NL80211_BSS_SIGNAL_UNSPEC: signal strength of the probe response/beacon
-	 *	in unspecified units, scaled to 0..100 (u8)
-	 *	@NL80211_BSS_STATUS: status, if this BSS is "used"
-	 *	@NL80211_BSS_SEEN_MS_AGO: age of this BSS entry in ms
-	 * @NL80211_BSS_BEACON_IES: binary attribute containing the raw information
-	 *	elements from a Beacon frame (bin); not present if no Beacon frame has
-	 *	yet been received
-	 */
-	struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
-    char mac_addr[20];
-    struct nlattr *tb[NL80211_ATTR_MAX + 1];
-    struct nlattr *bss[NL80211_BSS_MAX + 1];
-    static struct nla_policy bss_policy[NL80211_BSS_MAX + 1] = {
-        [NL80211_BSS_TSF] = { .type = NLA_U64 },
-        [NL80211_BSS_FREQUENCY] = { .type = NLA_U32 },
-        [NL80211_BSS_BSSID] = { },
-        [NL80211_BSS_BEACON_INTERVAL] = { .type = NLA_U16 },
-        [NL80211_BSS_CAPABILITY] = { .type = NLA_U16 },
-        [NL80211_BSS_INFORMATION_ELEMENTS] = { },
-        [NL80211_BSS_SIGNAL_MBM] = { .type = NLA_U32 },
-        [NL80211_BSS_SIGNAL_UNSPEC] = { .type = NLA_U8 },
-        [NL80211_BSS_STATUS] = { .type = NLA_U32 },
-        [NL80211_BSS_SEEN_MS_AGO] = { .type = NLA_U32 },
-        [NL80211_BSS_BEACON_IES] = { },
-    };
-
-    // Parse and error check
-    nla_parse(tb, NL80211_ATTR_MAX, genlmsg_attrdata(gnlh, 0), genlmsg_attrlen(gnlh, 0), NULL);
-    if (!tb[NL80211_ATTR_BSS]) {
-        printf("bss info missing\n");
-        return NL_SKIP;
-    }
-    if (nla_parse_nested(bss, NL80211_BSS_MAX, tb[NL80211_ATTR_BSS], bss_policy)) {
-        printf("failed to parse nested attributes\n");
-        return NL_SKIP;
-    }
-    if (!bss[NL80211_BSS_BSSID]) return NL_SKIP;
-    if (!bss[NL80211_BSS_INFORMATION_ELEMENTS]) return NL_SKIP;
-
-    int *time_vec;
-    time_vec = time_numbers( );
-    printf("%i:%i:%i:%i:%i:%i,", time_vec[0], time_vec[1], time_vec[2], time_vec[3], time_vec[4], time_vec[5]);
-
-    if (bss[NL80211_BSS_FREQUENCY]) {
-    	int freq = nla_get_u32(bss[NL80211_BSS_FREQUENCY]);
-    	printf("\tfreq: %d\n", freq);
-	}
-    else {
-    	printf("\tNaN\n");
-    }
-
-    if (bss[NL80211_BSS_BEACON_INTERVAL]) {
-    	printf("\tbeacon interval: %d TUs\n", nla_get_u16(bss[NL80211_BSS_BEACON_INTERVAL]));
-    }
-    else {
-    	printf("\tNaN\n");
-    }
-
-    if (bss[NL80211_BSS_BSSID]) {
-    	mac_addr_n2a(mac_addr, nla_data(bss[NL80211_BSS_BSSID]));
-    	printf("\tmac address: %s\n", mac_addr);
-    }
-    else {
-    	printf("\tNaN\n");
-    }
-
-    if (bss[NL80211_BSS_SEEN_MS_AGO]) {
-    	int age = nla_get_u32(bss[NL80211_BSS_SEEN_MS_AGO]);
-    	printf("\tlast seen: %d ms ago\n", age);
-	}
-    else {
-    	printf("\tNaN\n");
-    }
-
-    if (bss[NL80211_BSS_SIGNAL_MBM]) {
-    	int s = nla_get_u32(bss[NL80211_BSS_SIGNAL_MBM]);
-    	printf("\tsignal: %d.%.2d dBm\n", s/100, s%100);
-    }
-    else {
-    	printf("\tNaN\n");
-    }
-
-    if (bss[NL80211_BSS_SIGNAL_UNSPEC]) {
-    	unsigned char s = nla_get_u8(bss[NL80211_BSS_SIGNAL_UNSPEC]);
-    	printf("\tsignal: %d/100\n", s);
-    }
-    else {
-    	printf("\tNaN\n");
-    }
-
-	if (bss[NL80211_BSS_SEEN_MS_AGO]) {
-		int age = nla_get_u32(bss[NL80211_BSS_SEEN_MS_AGO]);
-		printf("\tlast seen: %d ms ago\n", age);
-	}
-	else {
-		printf("\tNaN\n");
-	}
-
-    if (bss[NL80211_BSS_INFORMATION_ELEMENTS])
-    	print_ssid(nla_data(bss[NL80211_BSS_INFORMATION_ELEMENTS]), nla_len(bss[NL80211_BSS_INFORMATION_ELEMENTS]));
-    else
-    	printf("\tNaN,");
-
-    if (bss[NL80211_BSS_STATUS]) {
-    	switch (nla_get_u32(bss[NL80211_BSS_STATUS])) {
-    	case NL80211_BSS_STATUS_AUTHENTICATED:
-			printf(" -- authenticated");
-			break;
-		case NL80211_BSS_STATUS_ASSOCIATED:
-			printf(" -- associated");
-			break;
-		case NL80211_BSS_STATUS_IBSS_JOINED:
-			printf(" -- joined");
-			break;
-		default:
-			printf(" -- unknown status: %d", nla_get_u32(bss[NL80211_BSS_STATUS]));
-			break;
-		}
-    }
-
-    printf("\n");
-
-    return NL_SKIP;
+	return NL_SKIP;
 }
 
 int do_scan_trigger(struct nl_sock *socket, int if_index, int driver_id) {
@@ -969,20 +955,6 @@ static int nl80211_listen_events(struct nl80211_state *state, struct print_event
 
 int main(void)
 {
-	/*
-	struct nl80211_state nlstate;
-	int errnl;
-
-	errnl = nl80211_init(&nlstate);
-	if (errnl)
-		return 1;
-
-	struct print_event_args args;
-
-	errnl = nl80211_listen_events(&nlstate, &args);
-	if (errnl)
-		return 1;
-	*/
 	// Use this wireless interface for scanning.
 	int if_index = if_nametoindex("wlp1s0");
 	// Open socket to kernel.
@@ -1014,8 +986,24 @@ int main(void)
     	printf("Error: nl_recvmsgs_default() returned %d (%s).\n", ret, nl_geterror(-ret));
     	return ret;
     }
-    /*
-    nl80211_cleanup(&nlstate);
-	*/
+
     return 0;
 }
+/*
+struct nl80211_state nlstate;
+int errnl;
+
+errnl = nl80211_init(&nlstate);
+if (errnl)
+	return 1;
+
+struct print_event_args args;
+
+errnl = nl80211_listen_events(&nlstate, &args);
+if (errnl)
+	return 1;
+*/
+
+/*
+nl80211_cleanup(&nlstate);
+*/
