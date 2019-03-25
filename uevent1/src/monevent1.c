@@ -288,6 +288,38 @@ static void print_supprates(const uint8_t type, uint8_t len,
 	printf("\n");
 }
 
+static void print_mesh_conf(const uint8_t type, uint8_t len,
+		const uint8_t *data, const struct print_ies_data *ie_buffer)
+{
+	printf("\n");
+	printf("\t\t * Active Path Selection Protocol ID: %d\n", data[0]);
+	printf("\t\t * Active Path Selection Metric ID: %d\n", data[1]);
+	printf("\t\t * Congestion Control Mode ID: %d\n", data[2]);
+	printf("\t\t * Synchronization Method ID: %d\n", data[3]);
+	printf("\t\t * Authentication Protocol ID: %d\n", data[4]);
+	printf("\t\t * Mesh Formation Info:\n");
+	printf("\t\t\t Number of Peerings: %d\n", (data[5] & 0x7E) >> 1);
+	if (data[5] & 0x01)
+		printf("\t\t\t Connected to Mesh Gate\n");
+	if (data[5] & 0x80)
+		printf("\t\t\t Connected to AS\n");
+	printf("\t\t * Mesh Capability\n");
+	if (data[6] & 0x01)
+		printf("\t\t\t Accepting Additional Mesh Peerings\n");
+	if (data[6] & 0x02)
+		printf("\t\t\t MCCA Supported\n");
+	if (data[6] & 0x04)
+		printf("\t\t\t MCCA Enabled\n");
+	if (data[6] & 0x08)
+		printf("\t\t\t Forwarding\n");
+	if (data[6] & 0x10)
+		printf("\t\t\t MBCA Supported\n");
+	if (data[6] & 0x20)
+		printf("\t\t\t TBTT Adjusting\n");
+	if (data[6] & 0x40)
+		printf("\t\t\t Mesh Power Save Level\n");
+}
+
 static void print_ds(const uint8_t type, uint8_t len, const uint8_t *data,
 		const struct print_ies_data *ie_buffer)
 {
