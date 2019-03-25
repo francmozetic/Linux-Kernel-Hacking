@@ -187,27 +187,6 @@ out_fail_cb:
 	return ret;
 }
 
-void print_ssid(unsigned char *ie, int ielen) {
-    uint8_t len;
-    uint8_t *data;
-    int i;
-
-    while (ielen >= 2 && ielen >= ie[1]) {
-        if (ie[0] == 0 && ie[1] >= 0 && ie[1] <= 32) {
-            len = ie[1];
-            data = ie + 2;
-            for (i = 0; i < len; i++) {
-                if (isprint(data[i]) && data[i] != ' ' && data[i] != '\\') printf("%c", data[i]);
-                else if (data[i] == ' ' && (i != 0 && i != len -1)) printf(" ");
-                else printf("\\x%.2x", data[i]);
-            }
-            break;
-        }
-        ielen -= ie[1] + 2;
-        ie += ie[1] + 2;
-    }
-}
-
 static int callback_trigger(struct nl_msg *msg, void *arg) {
     // Called by the kernel when the scan is done or has been aborted.
     struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
@@ -281,6 +260,12 @@ struct ie_print {
 	uint8_t minlen, maxlen;
 	uint8_t flags;
 };
+
+static void print_ds(const uint8_t type, uint8_t len, const uint8_t *data,
+		const struct print_ies_data *ie_buffer)
+{
+	printf(" channel %d\n", data[0]);
+}
 
 static const struct ie_print ieprinters[] = {
     [0] = { "SSID", print_ssid, 0, 32, BIT(PRINT_SCAN) | BIT(PRINT_LINK), },
