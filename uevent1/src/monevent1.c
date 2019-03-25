@@ -266,8 +266,8 @@ struct ie_print {
 #define BSS_MEMBERSHIP_SELECTOR_VHT_PHY 126
 #define BSS_MEMBERSHIP_SELECTOR_HT_PHY 127
 
-static void print_supprates(const uint8_t type, uint8_t len,
-		const uint8_t *data, const struct print_ies_data *ie_buffer)
+static void print_supprates(const uint8_t type, uint8_t len, const uint8_t *data,
+		const struct print_ies_data *ie_buffer)
 {
 	int i;
 
@@ -289,7 +289,7 @@ static void print_supprates(const uint8_t type, uint8_t len,
 }
 
 static void print_tim(const uint8_t type, uint8_t len, const uint8_t *data,
-		      const struct print_ies_data *ie_buffer)
+		const struct print_ies_data *ie_buffer)
 {
 	printf(" DTIM Count %u DTIM Period %u Bitmap Control 0x%x Bitmap[0] 0x%x",
 	       data[0], data[1], data[2], data[3]);
@@ -298,8 +298,14 @@ static void print_tim(const uint8_t type, uint8_t len, const uint8_t *data,
 	printf("\n");
 }
 
-static void print_mesh_conf(const uint8_t type, uint8_t len,
-		const uint8_t *data, const struct print_ies_data *ie_buffer)
+static void print_ibssatim(const uint8_t type, uint8_t len, const uint8_t *data,
+		const struct print_ies_data *ie_buffer)
+{
+	printf(" %d TUs", (data[1] << 8) + data[0]);
+}
+
+static void print_mesh_conf(const uint8_t type, uint8_t len, const uint8_t *data,
+		const struct print_ies_data *ie_buffer)
 {
 	printf("\n");
 	printf("\t\t * Active Path Selection Protocol ID: %d\n", data[0]);
