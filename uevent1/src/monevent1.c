@@ -288,6 +288,16 @@ static void print_supprates(const uint8_t type, uint8_t len,
 	printf("\n");
 }
 
+static void print_tim(const uint8_t type, uint8_t len, const uint8_t *data,
+		      const struct print_ies_data *ie_buffer)
+{
+	printf(" DTIM Count %u DTIM Period %u Bitmap Control 0x%x Bitmap[0] 0x%x",
+	       data[0], data[1], data[2], data[3]);
+	if (len - 4)
+		printf(" (+ %u octet%s)", len - 4, len - 4 == 1 ? "" : "s");
+	printf("\n");
+}
+
 static void print_mesh_conf(const uint8_t type, uint8_t len,
 		const uint8_t *data, const struct print_ies_data *ie_buffer)
 {
