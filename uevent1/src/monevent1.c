@@ -370,6 +370,14 @@ static void print_country(const uint8_t type, uint8_t len, const uint8_t *data,
 	return;
 }
 
+static void print_bss_load(const uint8_t type, uint8_t len, const uint8_t *data, const struct print_ies_data *ie_buffer)
+{
+	printf("\n");
+	printf("\t\t * station count: %d\n", (data[1] << 8) | data[0]);
+	printf("\t\t * channel utilisation: %d/255\n", data[2]);
+	printf("\t\t * available admission capacity: %d [*32us]\n", (data[4] << 8) | data[3]);
+}
+
 static void print_mesh_conf(const uint8_t type, uint8_t len, const uint8_t *data,
 		const struct print_ies_data *ie_buffer)
 {
