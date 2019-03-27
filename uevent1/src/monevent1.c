@@ -378,6 +378,42 @@ static void print_bss_load(const uint8_t type, uint8_t len, const uint8_t *data,
 	printf("\t\t * available admission capacity: %d [*32us]\n", (data[4] << 8) | data[3]);
 }
 
+static const char *ht_secondary_offset[4] = {
+	"no secondary",
+	"above",
+	"[reserved!]",
+	"below",
+};
+
+static void print_ht_op(const uint8_t type, uint8_t len, const uint8_t *data, const struct print_ies_data *ie_buffer)
+{
+	static const char *protection[4] = {
+		"no",
+		"nonmember",
+		"20 MHz",
+		"non-HT mixed",
+	};
+	static const char *sta_chan_width[2] = {
+		"20 MHz",
+		"any",
+	};
+
+	printf("\n");
+	printf("\t\t * primary channel: %d\n", data[0]);
+	printf("\t\t * secondary channel offset: %s\n", 	ht_secondary_offset[data[1] & 0x3]);
+	printf("\t\t * STA channel width: %s\n", sta_chan_width[(data[1] & 0x4)>>2]);
+	printf("\t\t * RIFS: %d\n", (data[1] & 0x8)>>3);
+	printf("\t\t * HT protection: %s\n", protection[data[2] & 0x3]);
+	printf("\t\t * non-GF present: %d\n", (data[2] & 0x4) >> 2);
+	printf("\t\t * OBSS non-GF present: %d\n", (data[2] & 0x10) >> 4);
+	printf("\t\t * dual beacon: %d\n", (data[4] & 0x40) >> 6);
+	printf("\t\t * dual CTS protection: %d\n", (data[4] & 0x80) >> 7);
+	printf("\t\t * STBC beacon: %d\n", data[5] & 0x1);
+	printf("\t\t * L-SIG TXOP Prot: %d\n", (data[5] & 0x2) >> 1);
+	printf("\t\t * PCO active: %d\n", (data[5] & 0x4) >> 2);
+	printf("\t\t * PCO phase: %d\n", (data[5] & 0x8) >> 3);
+}
+
 static void print_mesh_conf(const uint8_t type, uint8_t len, const uint8_t *data,
 		const struct print_ies_data *ie_buffer)
 {
