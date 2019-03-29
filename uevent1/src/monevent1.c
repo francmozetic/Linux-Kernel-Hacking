@@ -463,6 +463,56 @@ static void print_obss_scan_params(const uint8_t type, uint8_t len, const uint8_
 		((data[13] << 8) | data[12]) / 100, ((data[13] << 8) | data[12]) % 100);
 }
 
+void print_ht_capability(__u16 cap)
+{
+#define PRINT_HT_CAP(_cond, _str) \
+	do { \
+		if (_cond) \
+			printf("\t\t\t" _str "\n"); \
+	} while (0)
+
+	printf("\t\tCapabilities: 0x%02x\n", cap);
+
+	PRINT_HT_CAP((cap & BIT(0)), "RX LDPC");
+	PRINT_HT_CAP((cap & BIT(1)), "HT20/HT40");
+	PRINT_HT_CAP(!(cap & BIT(1)), "HT20");
+
+	PRINT_HT_CAP(((cap >> 2) & 0x3) == 0, "Static SM Power Save");
+	PRINT_HT_CAP(((cap >> 2) & 0x3) == 1, "Dynamic SM Power Save");
+	PRINT_HT_CAP(((cap >> 2) & 0x3) == 3, "SM Power Save disabled");
+
+	PRINT_HT_CAP((cap & BIT(4)), "RX Greenfield");
+	PRINT_HT_CAP((cap & BIT(5)), "RX HT20 SGI");
+	PRINT_HT_CAP((cap & BIT(6)), "RX HT40 SGI");
+	PRINT_HT_CAP((cap & BIT(7)), "TX STBC");
+
+	PRINT_HT_CAP(((cap >> 8) & 0x3) == 0, "No RX STBC");
+	PRINT_HT_CAP(((cap >> 8) & 0x3) == 1, "RX STBC 1-stream");
+	PRINT_HT_CAP(((cap >> 8) & 0x3) == 2, "RX STBC 2-streams");
+	PRINT_HT_CAP(((cap >> 8) & 0x3) == 3, "RX STBC 3-streams");
+
+	PRINT_HT_CAP((cap & BIT(10)), "HT Delayed Block Ack");
+
+	PRINT_HT_CAP(!(cap & BIT(11)), "Max AMSDU length: 3839 bytes");
+	PRINT_HT_CAP((cap & BIT(11)), "Max AMSDU length: 7935 bytes");
+
+	/*
+	 * For beacons and probe response this would mean the BSS
+	 * does or does not allow the usage of DSSS/CCK HT40.
+	 * Otherwise it means the STA does or does not use
+	 * DSSS/CCK HT40.
+	 */
+	PRINT_HT_CAP((cap & BIT(12)), "DSSS/CCK HT40");
+	PRINT_HT_CAP(!(cap & BIT(12)), "No DSSS/CCK HT40");
+
+	/* BIT(13) is reserved */
+
+	PRINT_HT_CAP((cap & BIT(14)), "40 MHz Intolerant");
+
+	PRINT_HT_CAP((cap & BIT(15)), "L-SIG TXOP protection");
+#undef PRINT_HT_CAP
+}
+
 static void print_ht_capa(const uint8_t type, uint8_t len, const uint8_t *data,
 		const struct print_ies_data *ie_buffer)
 {
@@ -662,13 +712,85 @@ static void print_ht_op(const uint8_t type, uint8_t len, const uint8_t *data,
 	printf("\t\t * PCO phase: %d\n", (data[5] & 0x8) >> 3);
 }
 
+void print_vht_info(__u32 capa, const __u8 *mcs)
+{
+	__u16 tmp;
+	int i;
+
+	printf("\t\tVHT Capabilities (0x%.8x):\n", capa);
+
+#define PRINT_VHT_CAPA(_bit, _str) \
+	do { \
+		if (capa & BIT(_bit)) \
+			printf("\t\t\t" _str "\n"); \
+	} while (0)
+
+	printf("\t\t\tMax MPDU length: ");
+	switch (capa & 3) {
+	case 0: printf("3895\n"); break;
+	case 1: printf("7991\n"); break;
+	case 2: printf("11454\n"); break;
+	case 3: printf("(reserved)\n");
+	}
+	printf("\t\t\tSupported Channel Width: ");
+	switch ((capa >> 2) & 3) {
+	case 0: printf("neither 160 nor 80+80\n"); break;
+	case 1: printf("160 MHz\n"); break;
+	case 2: printf("160 MHz, 80+80 MHz\n"); break;
+	case 3: printf("(reserved)\n");
+	}
+	PRINT_VHT_CAPA(4, "RX LDPC");
+	PRINT_VHT_CAPA(5, "short GI (80 MHz)");
+	PRINT_VHT_CAPA(6, "short GI (160/80+80 MHz)");
+	PRINT_VHT_CAPA(7, "TX STBC");
+	/* RX STBC */
+	PRINT_VHT_CAPA(11, "SU Beamformer");
+	PRINT_VHT_CAPA(12, "SU Beamformee");
+	/* compressed steering */
+	/* # of sounding dimensions */
+	PRINT_VHT_CAPA(19, "MU Beamformer");
+	PRINT_VHT_CAPA(20, "MU Beamformee");
+	PRINT_VHT_CAPA(21, "VHT TXOP PS");
+	PRINT_VHT_CAPA(22, "+HTC-VHT");
+	/* max A-MPDU */
+	/* VHT link adaptation */
+	PRINT_VHT_CAPA(28, "RX antenna pattern consistency");
+	PRINT_VHT_CAPA(29, "TX antenna pattern consistency");
+
+	printf("\t\tVHT RX MCS set:\n");
+	tmp = mcs[0] | (mcs[1] << 8);
+	for (i = 1; i <= 8; i++) {
+		printf("\t\t\t%d streams: ", i);
+		switch ((tmp >> ((i-1)*2) ) & 3) {
+		case 0: printf("MCS 0-7\n"); break;
+		case 1: printf("MCS 0-8\n"); break;
+		case 2: printf("MCS 0-9\n"); break;
+		case 3: printf("not supported\n"); break;
+		}
+	}
+	tmp = mcs[2] | (mcs[3] << 8);
+	printf("\t\tVHT RX highest supported: %d Mbps\n", tmp & 0x1fff);
+
+	printf("\t\tVHT TX MCS set:\n");
+	tmp = mcs[4] | (mcs[5] << 8);
+	for (i = 1; i <= 8; i++) {
+		printf("\t\t\t%d streams: ", i);
+		switch ((tmp >> ((i-1)*2) ) & 3) {
+		case 0: printf("MCS 0-7\n"); break;
+		case 1: printf("MCS 0-8\n"); break;
+		case 2: printf("MCS 0-9\n"); break;
+		case 3: printf("not supported\n"); break;
+		}
+	}
+	tmp = mcs[6] | (mcs[7] << 8);
+	printf("\t\tVHT TX highest supported: %d Mbps\n", tmp & 0x1fff);
+}
+
 static void print_vht_capa(const uint8_t type, uint8_t len, const uint8_t *data,
 			   const struct print_ies_data *ie_buffer)
 {
 	printf("\n");
-	print_vht_info(data[0] | (data[1] << 8) |
-		       (data[2] << 16) | (data[3] << 24),
-		       data + 4);
+	print_vht_info(data[0] | (data[1] << 8) | (data[2] << 16) | (data[3] << 24), data + 4);
 }
 
 static void print_vht_oper(const uint8_t type, uint8_t len, const uint8_t *data,
@@ -802,7 +924,6 @@ static const struct ie_print ieprinters[] = {
 	[61] = { "HT operation", print_ht_op, 22, 22, BIT(PRINT_SCAN), },
 	[191] = { "VHT capabilities", print_vht_capa, 12, 255, BIT(PRINT_SCAN), },
 	[192] = { "VHT operation", print_vht_oper, 5, 255, BIT(PRINT_SCAN), },
-	[48] = { "RSN", print_rsn, 2, 255, BIT(PRINT_SCAN), },
 	[50] = { "Extended supported rates", print_supprates, 0, 255, BIT(PRINT_SCAN), },
 	[113] = { "MESH Configuration", print_mesh_conf, 7, 7, BIT(PRINT_SCAN), },
 	[114] = { "MESH ID", print_ssid, 0, 32, BIT(PRINT_SCAN) | BIT(PRINT_LINK), },
