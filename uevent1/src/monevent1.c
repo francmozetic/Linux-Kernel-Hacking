@@ -662,6 +662,33 @@ static void print_ht_op(const uint8_t type, uint8_t len, const uint8_t *data,
 	printf("\t\t * PCO phase: %d\n", (data[5] & 0x8) >> 3);
 }
 
+static void print_vht_capa(const uint8_t type, uint8_t len, const uint8_t *data,
+			   const struct print_ies_data *ie_buffer)
+{
+	printf("\n");
+	print_vht_info(data[0] | (data[1] << 8) |
+		       (data[2] << 16) | (data[3] << 24),
+		       data + 4);
+}
+
+static void print_vht_oper(const uint8_t type, uint8_t len, const uint8_t *data,
+			   const struct print_ies_data *ie_buffer)
+{
+	const char *chandwidths[] = {
+		[0] = "20 or 40 MHz",
+		[1] = "80 MHz",
+		[3] = "80+80 MHz",
+		[2] = "160 MHz",
+	};
+
+	printf("\n");
+	printf("\t\t * channel width: %d (%s)\n", data[0],
+		data[0] < ARRAY_SIZE(chandwidths) ? chandwidths[data[0]] : "unknown");
+	printf("\t\t * center freq segment 1: %d\n", data[1]);
+	printf("\t\t * center freq segment 2: %d\n", data[2]);
+	printf("\t\t * VHT basic MCS set: 0x%.2x%.2x\n", data[4], data[3]);
+}
+
 static void print_mesh_conf(const uint8_t type, uint8_t len, const uint8_t *data,
 		const struct print_ies_data *ie_buffer)
 {
@@ -773,7 +800,6 @@ static const struct ie_print ieprinters[] = {
 	[47] = { "ERP D4.0", print_erp, 1, 255, BIT(PRINT_SCAN), },
 	[74] = { "Overlapping BSS scan params", print_obss_scan_params, 14, 255, BIT(PRINT_SCAN), },
 	[61] = { "HT operation", print_ht_op, 22, 22, BIT(PRINT_SCAN), },
-	[62] = { "Secondary Channel Offset", print_secchan_offs, 1, 1, BIT(PRINT_SCAN), },
 	[191] = { "VHT capabilities", print_vht_capa, 12, 255, BIT(PRINT_SCAN), },
 	[192] = { "VHT operation", print_vht_oper, 5, 255, BIT(PRINT_SCAN), },
 	[48] = { "RSN", print_rsn, 2, 255, BIT(PRINT_SCAN), },
