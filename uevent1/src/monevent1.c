@@ -385,6 +385,12 @@ static void print_powerconstraint(const uint8_t type, uint8_t len, const uint8_t
 	printf(" %d dB\n", data[0]);
 }
 
+static void print_tpcreport(const uint8_t type, uint8_t len, const uint8_t *data,
+		const struct print_ies_data *ie_buffer)
+{
+	printf(" TX power: %d dBm\n", data[0]);
+}
+
 static const char *ht_secondary_offset[4] = {
 	"no secondary",
 	"above",
