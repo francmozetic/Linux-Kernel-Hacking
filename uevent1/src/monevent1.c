@@ -434,6 +434,20 @@ static void print_erp(const uint8_t type, uint8_t len, const uint8_t *data,
 	printf("\n");
 }
 
+static void print_obss_scan_params(const uint8_t type, uint8_t len, const uint8_t *data,
+		const struct print_ies_data *ie_buffer)
+{
+	printf("\n");
+	printf("\t\t * passive dwell: %d TUs\n", (data[1] << 8) | data[0]);
+	printf("\t\t * active dwell: %d TUs\n", (data[3] << 8) | data[2]);
+	printf("\t\t * channel width trigger scan interval: %d s\n", (data[5] << 8) | data[4]);
+	printf("\t\t * scan passive total per channel: %d TUs\n", (data[7] << 8) | data[6]);
+	printf("\t\t * scan active total per channel: %d TUs\n", (data[9] << 8) | data[8]);
+	printf("\t\t * BSS width channel transition delay factor: %d\n", (data[11] << 8) | data[10]);
+	printf("\t\t * OBSS Scan Activity Threshold: %d.%02d %%\n",
+		((data[13] << 8) | data[12]) / 100, ((data[13] << 8) | data[12]) % 100);
+}
+
 static void print_ht_capa(const uint8_t type, uint8_t len, const uint8_t *data,
 		const struct print_ies_data *ie_buffer)
 {
