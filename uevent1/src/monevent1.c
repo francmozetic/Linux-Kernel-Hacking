@@ -263,6 +263,28 @@ struct ie_print {
 	uint8_t flags;
 };
 
+void print_ssid_escaped(const uint8_t len, const uint8_t *data)
+{
+	int i;
+
+	for (i = 0; i < len; i++) {
+		if (isprint(data[i]) && data[i] != ' ' && data[i] != '\\')
+			printf("%c", data[i]);
+		else if (data[i] == ' ' &&
+			 (i != 0 && i != len -1))
+			printf(" ");
+		else
+			printf("\\x%.2x", data[i]);
+	}
+}
+
+static void print_ssid(const uint8_t type, uint8_t len, const uint8_t *data, const struct print_ies_data *ie_buffer)
+{
+	printf(" ");
+	print_ssid_escaped(len, data);
+	printf("\n");
+}
+
 #define BSS_MEMBERSHIP_SELECTOR_VHT_PHY 126
 #define BSS_MEMBERSHIP_SELECTOR_HT_PHY 127
 
@@ -731,8 +753,6 @@ static const struct ie_print ieprinters[] = {
 	[114] = { "MESH ID", print_ssid, 0, 32, BIT(PRINT_SCAN) | BIT(PRINT_LINK), },
 	[127] = { "Extended capabilities", print_capabilities, 0, 255, BIT(PRINT_SCAN), },
 	[107] = { "802.11u Interworking", print_interworking, 0, 255, BIT(PRINT_SCAN), },
-	[108] = { "802.11u Advertisement", print_11u_advert, 0, 255, BIT(PRINT_SCAN), },
-	[111] = { "802.11u Roaming Consortium", print_11u_rcon, 0, 255, BIT(PRINT_SCAN), },
 };
 
 static void print_vendor(unsigned char len, unsigned char *data,
