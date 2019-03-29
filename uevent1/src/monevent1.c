@@ -346,6 +346,21 @@ static const char *country_env_str(char environment)
 	}
 }
 
+#define IEEE80211_COUNTRY_EXTENSION_ID 201
+
+union ieee80211_country_ie_triplet {
+	struct {
+		__u8 first_channel;
+		__u8 num_channels;
+		__s8 max_power;
+	} __attribute__ ((packed)) chans;
+	struct {
+		__u8 reg_extension_id;
+		__u8 reg_class;
+		__u8 coverage_class;
+	} __attribute__ ((packed)) ext;
+} __attribute__ ((packed));
+
 static void print_country(const uint8_t type, uint8_t len, const uint8_t *data,
 		const struct print_ies_data *ie_buffer)
 {
