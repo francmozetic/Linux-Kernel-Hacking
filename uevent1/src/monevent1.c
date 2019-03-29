@@ -398,6 +398,189 @@ static const char *ht_secondary_offset[4] = {
 	"below",
 };
 
+static void print_erp(const uint8_t type, uint8_t len, const uint8_t *data,
+		const struct print_ies_data *ie_buffer)
+{
+	if (data[0] == 0x00)
+		printf(" <no flags>");
+	if (data[0] & 0x01)
+		printf(" NonERP_Present");
+	if (data[0] & 0x02)
+		printf(" Use_Protection");
+	if (data[0] & 0x04)
+		printf(" Barker_Preamble_Mode");
+	printf("\n");
+}
+
+static void print_ht_capa(const uint8_t type, uint8_t len, const uint8_t *data,
+		const struct print_ies_data *ie_buffer)
+{
+	printf("\n");
+	print_ht_capability(data[0] | (data[1] << 8));
+	print_ampdu_length(data[2] & 3);
+	print_ampdu_spacing((data[2] >> 2) & 7);
+	print_ht_mcs(data + 3);
+}
+
+static void print_capabilities(const uint8_t type, uint8_t len, const uint8_t *data,
+		const struct print_ies_data *ie_buffer)
+{
+	int i, base, bit, si_duration = 0, max_amsdu = 0;
+	bool s_psmp_support = false, is_vht_cap = false;
+	unsigned char *ie = ie_buffer->ie;
+	int ielen = ie_buffer->ielen;
+
+	while (ielen >= 2 && ielen >= ie[1]) {
+		if (ie[0] == 191) {
+			is_vht_cap = true;
+			break;
+		}
+		ielen -= ie[1] + 2;
+		ie += ie[1] + 2;
+	}
+
+	for (i = 0; i < len; i++) {
+		base = i * 8;
+
+		for (bit = 0; bit < 8; bit++) {
+			if (!(data[i] & (1 << bit)))
+				continue;
+
+			printf("\n\t\t *");
+
+#define CAPA(bit, name) case bit: printf(" " name); break
+
+/* if the capability 'cap' exists add 'val' to 'sum' otherwise print 'Reserved' */
+#define ADD_BIT_VAL(bit, cap, sum, val)	case (bit): do {    \
+	if (!(cap)) {    \
+		printf(" Reserved");    \
+		break;    \
+	}    \
+	sum += val;    	\
+	break;    \
+} while (0)
+
+			switch (bit + base) {
+			CAPA(0, "HT Information Exchange Supported");
+			CAPA(1, "reserved (On-demand Beacon)");
+			CAPA(2, "Extended Channel Switching");
+			CAPA(3, "reserved (Wave Indication)");
+			CAPA(4, "PSMP Capability");
+			CAPA(5, "reserved (Service Interval Granularity)");
+
+			case 6:
+				s_psmp_support = true;
+				printf(" S-PSMP Capability");
+				break;
+
+			CAPA(7, "Event");
+			CAPA(8, "Diagnostics");
+			CAPA(9, "Multicast Diagnostics");
+			CAPA(10, "Location Tracking");
+			CAPA(11, "FMS");
+			CAPA(12, "Proxy ARP Service");
+			CAPA(13, "Collocated Interference Reporting");
+			CAPA(14, "Civic Location");
+			CAPA(15, "Geospatial Location");
+			CAPA(16, "TFS");
+			CAPA(17, "WNM-Sleep Mode");
+			CAPA(18, "TIM Broadcast");
+			CAPA(19, "BSS Transition");
+			CAPA(20, "QoS Traffic Capability");
+			CAPA(21, "AC Station Count");
+			CAPA(22, "Multiple BSSID");
+			CAPA(23, "Timing Measurement");
+			CAPA(24, "Channel Usage");
+			CAPA(25, "SSID List");
+			CAPA(26, "DMS");
+			CAPA(27, "UTC TSF Offset");
+			CAPA(28, "TDLS Peer U-APSD Buffer STA Support");
+			CAPA(29, "TDLS Peer PSM Support");
+			CAPA(30, "TDLS channel switching");
+			CAPA(31, "Interworking");
+			CAPA(32, "QoS Map");
+			CAPA(33, "EBR");
+			CAPA(34, "SSPN Interface");
+			CAPA(35, "Reserved");
+			CAPA(36, "MSGCF Capability");
+			CAPA(37, "TDLS Support");
+			CAPA(38, "TDLS Prohibited");
+			CAPA(39, "TDLS Channel Switching Prohibited");
+			CAPA(40, "Reject Unadmitted Frame");
+
+			ADD_BIT_VAL(41, s_psmp_support, si_duration, 1);
+			ADD_BIT_VAL(42, s_psmp_support, si_duration, 2);
+			ADD_BIT_VAL(43, s_psmp_support, si_duration, 4);
+
+			CAPA(44, "Identifier Location");
+			CAPA(45, "U-APSD Coexistence");
+			CAPA(46, "WNM-Notification");
+			CAPA(47, "Reserved");
+			CAPA(48, "UTF-8 SSID");
+			CAPA(49, "QMFActivated");
+			CAPA(50, "QMFReconfigurationActivated");
+			CAPA(51, "Robust AV Streaming");
+			CAPA(52, "Advanced GCR");
+			CAPA(53, "Mesh GCR");
+			CAPA(54, "SCS");
+			CAPA(55, "QLoad Report");
+			CAPA(56, "Alternate EDCA");
+			CAPA(57, "Unprotected TXOP Negotiation");
+			CAPA(58, "Protected TXOP egotiation");
+			CAPA(59, "Reserved");
+			CAPA(60, "Protected QLoad Report");
+			CAPA(61, "TDLS Wider Bandwidth");
+			CAPA(62, "Operating Mode Notification");
+
+			ADD_BIT_VAL(63, is_vht_cap, max_amsdu, 1);
+			ADD_BIT_VAL(64, is_vht_cap, max_amsdu, 2);
+
+			CAPA(65, "Channel Schedule Management");
+			CAPA(66, "Geodatabase Inband Enabling Signal");
+			CAPA(67, "Network Channel Control");
+			CAPA(68, "White Space Map");
+			CAPA(69, "Channel Availability Query");
+			CAPA(70, "FTM Responder");
+			CAPA(71, "FTM Initiator");
+			CAPA(72, "Reserved");
+			CAPA(73, "Extended Spectrum Management Capable");
+			CAPA(74, "Reserved");
+			default:
+				printf(" %d", bit);
+				break;
+			}
+#undef ADD_BIT_VAL
+#undef CAPA
+		}
+	}
+
+	if (s_psmp_support)
+		printf("\n\t\t * Service Interval Granularity is %d ms",
+		       (si_duration + 1) * 5);
+
+	if (is_vht_cap) {
+		printf("\n\t\t * Max Number Of MSDUs In A-MSDU is ");
+		switch (max_amsdu) {
+		case 0:
+			printf("unlimited");
+			break;
+		case 1:
+			printf("32");
+			break;
+		case 2:
+			printf("16");
+			break;
+		case 3:
+			printf("8");
+			break;
+		default:
+			break;
+		}
+	}
+
+	printf("\n");
+}
+
 static void print_ht_op(const uint8_t type, uint8_t len, const uint8_t *data,
 		const struct print_ies_data *ie_buffer)
 {
@@ -458,6 +641,70 @@ static void print_mesh_conf(const uint8_t type, uint8_t len, const uint8_t *data
 		printf("\t\t\t TBTT Adjusting\n");
 	if (data[6] & 0x40)
 		printf("\t\t\t Mesh Power Save Level\n");
+}
+
+static const char* ntype_11u(uint8_t t)
+{
+	switch (t) {
+	case 0: return "Private";
+	case 1: return "Private with Guest";
+	case 2: return "Chargeable Public";
+	case 3: return "Free Public";
+	case 4: return "Personal Device";
+	case 5: return "Emergency Services Only";
+	case 14: return "Test or Experimental";
+	case 15: return "Wildcard";
+	default: return "Reserved";
+	}
+}
+
+static const char* vgroup_11u(uint8_t t)
+{
+	switch (t) {
+	case 0: return "Unspecified";
+	case 1: return "Assembly";
+	case 2: return "Business";
+	case 3: return "Educational";
+	case 4: return "Factory and Industrial";
+	case 5: return "Institutional";
+	case 6: return "Mercantile";
+	case 7: return "Residential";
+	case 8: return "Storage";
+	case 9: return "Utility and Miscellaneous";
+	case 10: return "Vehicular";
+	case 11: return "Outdoor";
+	default: return "Reserved";
+	}
+}
+
+static void print_interworking(const uint8_t type, uint8_t len, const uint8_t *data,
+		const struct print_ies_data *ie_buffer)
+{
+	/* See Section 7.3.2.92 in the 802.11u spec. */
+	printf("\n");
+	if (len >= 1) {
+		uint8_t ano = data[0];
+		printf("\t\tNetwork Options: 0x%hx\n", (unsigned short)(ano));
+		printf("\t\t\tNetwork Type: %i (%s)\n", (int)(ano & 0xf), ntype_11u(ano & 0xf));
+		if (ano & (1<<4))
+			printf("\t\t\tInternet\n");
+		if (ano & (1<<5))
+			printf("\t\t\tASRA\n");
+		if (ano & (1<<6))
+			printf("\t\t\tESR\n");
+		if (ano & (1<<7))
+			printf("\t\t\tUESA\n");
+	}
+	if ((len == 3) || (len == 9)) {
+		printf("\t\tVenue Group: %i (%s)\n", (int)(data[1]), vgroup_11u(data[1]));
+		printf("\t\tVenue Type: %i\n", (int)(data[2]));
+	}
+	if (len == 9)
+		printf("\t\tHESSID: %02hx:%02hx:%02hx:%02hx:%02hx:%02hx\n",
+		       data[3], data[4], data[5], data[6], data[7], data[8]);
+	else if (len == 7)
+		printf("\t\tHESSID: %02hx:%02hx:%02hx:%02hx:%02hx:%02hx\n",
+		       data[1], data[2], data[3], data[4], data[5], data[6]);
 }
 
 static const struct ie_print ieprinters[] = {
