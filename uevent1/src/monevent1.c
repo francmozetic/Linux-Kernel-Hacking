@@ -251,6 +251,10 @@ struct scan_params {
 #define WLAN_CAPABILITY_DMG_SPECTRUM_MGMT    (1<<8)
 #define WLAN_CAPABILITY_DMG_RADIO_MEASURE    (1<<12)
 
+static unsigned char ms_oui[3] = { 0x00, 0x50, 0xf2 };
+static unsigned char ieee80211_oui[3]	= { 0x00, 0x0f, 0xac };
+static unsigned char wfa_oui[3] = { 0x50, 0x6f, 0x9a };
+
 struct print_ies_data {
 	unsigned char *ie;
 	int ielen;
@@ -940,6 +944,157 @@ static void print_vht_oper(const uint8_t type, uint8_t len, const uint8_t *data,
 	printf("\t\t * center freq segment 1: %d\n", data[1]);
 	printf("\t\t * center freq segment 2: %d\n", data[2]);
 	printf("\t\t * VHT basic MCS set: 0x%.2x%.2x\n", data[4], data[3]);
+}
+
+static void print_cipher(const uint8_t *data)
+{
+	if (memcmp(data, ms_oui, 3) == 0) {
+		switch (data[3]) {
+		case 0:
+			printf("Use group cipher suite");
+			break;
+		case 1:
+			printf("WEP-40");
+			break;
+		case 2:
+			printf("TKIP");
+			break;
+		case 4:
+			printf("CCMP");
+			break;
+		case 5:
+			printf("WEP-104");
+			break;
+		default:
+			printf("%.02x-%.02x-%.02x:%d",
+				data[0], data[1] ,data[2], data[3]);
+			break;
+		}
+	} else if (memcmp(data, ieee80211_oui, 3) == 0) {
+		switch (data[3]) {
+		case 0:
+			printf("Use group cipher suite");
+			break;
+		case 1:
+			printf("WEP-40");
+			break;
+		case 2:
+			printf("TKIP");
+			break;
+		case 4:
+			printf("CCMP");
+			break;
+		case 5:
+			printf("WEP-104");
+			break;
+		case 6:
+			printf("AES-128-CMAC");
+			break;
+		case 7:
+			printf("NO-GROUP");
+			break;
+		case 8:
+			printf("GCMP");
+			break;
+		default:
+			printf("%.02x-%.02x-%.02x:%d",
+				data[0], data[1] ,data[2], data[3]);
+			break;
+		}
+	} else
+		printf("%.02x-%.02x-%.02x:%d",
+			data[0], data[1] ,data[2], data[3]);
+}
+
+static void print_auth(const uint8_t *data)
+{
+	if (memcmp(data, ms_oui, 3) == 0) {
+		switch (data[3]) {
+		case 1:
+			printf("IEEE 802.1X");
+			break;
+		case 2:
+			printf("PSK");
+			break;
+		default:
+			printf("%.02x-%.02x-%.02x:%d",
+				data[0], data[1] ,data[2], data[3]);
+			break;
+		}
+	} else if (memcmp(data, ieee80211_oui, 3) == 0) {
+		switch (data[3]) {
+		case 1:
+			printf("IEEE 802.1X");
+			break;
+		case 2:
+			printf("PSK");
+			break;
+		case 3:
+			printf("FT/IEEE 802.1X");
+			break;
+		case 4:
+			printf("FT/PSK");
+			break;
+		case 5:
+			printf("IEEE 802.1X/SHA-256");
+			break;
+		case 6:
+			printf("PSK/SHA-256");
+			break;
+		case 7:
+			printf("TDLS/TPK");
+			break;
+		case 8:
+			printf("SAE");
+			break;
+		case 9:
+			printf("FT/SAE");
+			break;
+		case 11:
+			printf("IEEE 802.1X/SUITE-B");
+			break;
+		case 12:
+			printf("IEEE 802.1X/SUITE-B-192");
+			break;
+		case 13:
+			printf("FT/IEEE 802.1X/SHA-384");
+			break;
+		case 14:
+			printf("FILS/SHA-256");
+			break;
+		case 15:
+			printf("FILS/SHA-384");
+			break;
+		case 16:
+			printf("FT/FILS/SHA-256");
+			break;
+		case 17:
+			printf("FT/FILS/SHA-384");
+			break;
+		case 18:
+			printf("OWE");
+			break;
+		default:
+			printf("%.02x-%.02x-%.02x:%d",
+				data[0], data[1] ,data[2], data[3]);
+			break;
+		}
+	} else if (memcmp(data, wfa_oui, 3) == 0) {
+		switch (data[3]) {
+		case 1:
+			printf("OSEN");
+			break;
+		case 2:
+			printf("DPP");
+			break;
+		default:
+			printf("%.02x-%.02x-%.02x:%d",
+				data[0], data[1] ,data[2], data[3]);
+			break;
+		}
+	} else
+		printf("%.02x-%.02x-%.02x:%d",
+			data[0], data[1] ,data[2], data[3]);
 }
 
 static void _print_rsn_ie(const char *defcipher, const char *defauth, uint8_t len, const uint8_t *data, int is_osen)
