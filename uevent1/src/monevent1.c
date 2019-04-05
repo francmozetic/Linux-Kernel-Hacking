@@ -1060,6 +1060,200 @@ static void print_wifi_wpa(const uint8_t type, uint8_t len, const uint8_t *data,
 	print_rsn_ie("TKIP", "IEEE 802.1X", len, data);
 }
 
+static void print_wifi_wmm(const uint8_t type, uint8_t len, const uint8_t *data,
+		const struct print_ies_data *ie_buffer)
+{
+	int i;
+
+	switch (data[0]) {
+	case 0x00:
+		printf(" information:");
+		break;
+	case 0x01:
+		if (print_wifi_wmm_param(data + 1, len - 1))
+			return;
+		break;
+	default:
+		printf(" type %d:", data[0]);
+		break;
+	}
+
+	for(i = 1; i < len; i++)
+		printf(" %.02x", data[i]);
+	printf("\n");
+}
+
+static void print_wifi_wps(const uint8_t type, uint8_t len, const uint8_t *data,
+		const struct print_ies_data *ie_buffer)
+{
+	bool first = true;
+	__u16 subtype, sublen;
+
+	while (len >= 4) {
+		subtype = (data[0] << 8) + data[1];
+		sublen = (data[2] << 8) + data[3];
+		if (sublen > len)
+			break;
+
+		switch (subtype) {
+		case 0x104a:
+			tab_on_first(&first);
+			printf("\t * Version: %d.%d\n", data[4] >> 4, data[4] & 0xF);
+			break;
+		case 0x1011:
+			tab_on_first(&first);
+			printf("\t * Device name: %.*s\n", sublen, data + 4);
+			break;
+		case 0x1012: {
+			uint16_t id;
+			tab_on_first(&first);
+			if (sublen != 2) {
+				printf("\t * Device Password ID: (invalid "
+				       "length %d)\n", sublen);
+				break;
+			}
+			id = data[4] << 8 | data[5];
+			printf("\t * Device Password ID: %u (%s)\n",
+			       id, wifi_wps_dev_passwd_id(id));
+			break;
+		}
+		case 0x1021:
+			tab_on_first(&first);
+			printf("\t * Manufacturer: %.*s\n", sublen, data + 4);
+			break;
+		case 0x1023:
+			tab_on_first(&first);
+			printf("\t * Model: %.*s\n", sublen, data + 4);
+			break;
+		case 0x1024:
+			tab_on_first(&first);
+			printf("\t * Model Number: %.*s\n", sublen, data + 4);
+			break;
+		case 0x103b: {
+			__u8 val = data[4];
+			tab_on_first(&first);
+			printf("\t * Response Type: %d%s\n",
+			       val, val == 3 ? " (AP)" : "");
+			break;
+		}
+		case 0x103c: {
+			__u8 val = data[4];
+			tab_on_first(&first);
+			printf("\t * RF Bands: 0x%x\n", val);
+			break;
+		}
+		case 0x1041: {
+			__u8 val = data[4];
+			tab_on_first(&first);
+			printf("\t * Selected Registrar: 0x%x\n", val);
+			break;
+		}
+		case 0x1042:
+			tab_on_first(&first);
+			printf("\t * Serial Number: %.*s\n", sublen, data + 4);
+			break;
+		case 0x1044: {
+			__u8 val = data[4];
+			tab_on_first(&first);
+			printf("\t * Wi-Fi Protected Setup State: %d%s%s\n",
+			       val,
+			       val == 1 ? " (Unconfigured)" : "",
+			       val == 2 ? " (Configured)" : "");
+			break;
+		}
+		case 0x1047:
+			tab_on_first(&first);
+			printf("\t * UUID: ");
+			if (sublen != 16) {
+				printf("(invalid, length=%d)\n", sublen);
+				break;
+			}
+			printf("%02x%02x%02x%02x-%02x%02x-%02x%02x-"
+				"%02x%02x-%02x%02x%02x%02x%02x%02x\n",
+				data[4], data[5], data[6], data[7],
+				data[8], data[9], data[10], data[11],
+				data[12], data[13], data[14], data[15],
+				data[16], data[17], data[18], data[19]);
+			break;
+		case 0x1054: {
+			tab_on_first(&first);
+			if (sublen != 8) {
+				printf("\t * Primary Device Type: (invalid "
+				       "length %d)\n", sublen);
+				break;
+			}
+			printf("\t * Primary Device Type: "
+			       "%u-%02x%02x%02x%02x-%u\n",
+			       data[4] << 8 | data[5],
+			       data[6], data[7], data[8], data[9],
+			       data[10] << 8 | data[11]);
+			break;
+		}
+		case 0x1057: {
+			__u8 val = data[4];
+			tab_on_first(&first);
+			printf("\t * AP setup locked: 0x%.2x\n", val);
+			break;
+		}
+		case 0x1008:
+		case 0x1053: {
+			__u16 meth = (data[4] << 8) + data[5];
+			bool comma = false;
+			tab_on_first(&first);
+			printf("\t * %sConfig methods:",
+			       subtype == 0x1053 ? "Selected Registrar ": "");
+#define T(bit, name) do {		\
+	if (meth & (1<<bit)) {		\
+		if (comma)		\
+			printf(",");	\
+		comma = true;		\
+		printf(" " name);	\
+	} } while (0)
+			T(0, "USB");
+			T(1, "Ethernet");
+			T(2, "Label");
+			T(3, "Display");
+			T(4, "Ext. NFC");
+			T(5, "Int. NFC");
+			T(6, "NFC Intf.");
+			T(7, "PBC");
+			T(8, "Keypad");
+			printf("\n");
+			break;
+#undef T
+		}
+		default: {
+			const __u8 *subdata = data + 4;
+			__u16 tmplen = sublen;
+
+			tab_on_first(&first);
+			printf("\t * Unknown TLV (%#.4x, %d bytes):",
+			       subtype, tmplen);
+			while (tmplen) {
+				printf(" %.2x", *subdata);
+				subdata++;
+				tmplen--;
+			}
+			printf("\n");
+			break;
+		}
+		}
+
+		data += sublen + 4;
+		len -= sublen + 4;
+	}
+
+	if (len != 0) {
+		printf("\t\t * bogus tail data (%d):", len);
+		while (len) {
+			printf(" %.2x", *data);
+			data++;
+			len--;
+		}
+		printf("\n");
+	}
+}
+
 static const struct ie_print wifiprinters[] = {
 	[1] = { "WPA", print_wifi_wpa, 2, 255, BIT(PRINT_SCAN), },
 	[2] = { "WMM", print_wifi_wmm, 1, 255, BIT(PRINT_SCAN), },
