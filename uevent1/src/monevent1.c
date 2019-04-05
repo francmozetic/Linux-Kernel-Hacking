@@ -1299,7 +1299,7 @@ static void print_mesh_conf(const uint8_t type, uint8_t len, const uint8_t *data
 		printf("\t\t\t Mesh Power Save Level\n");
 }
 
-static const char* ntype_11u(uint8_t t)
+static const char *ntype_11u(uint8_t t)
 {
 	switch (t) {
 	case 0: return "Private";
@@ -1314,7 +1314,7 @@ static const char* ntype_11u(uint8_t t)
 	}
 }
 
-static const char* vgroup_11u(uint8_t t)
+static const char *vgroup_11u(uint8_t t)
 {
 	switch (t) {
 	case 0: return "Unspecified";
@@ -1457,6 +1457,26 @@ static void print_wifi_wmm(const uint8_t type, uint8_t len, const uint8_t *data,
 	for(i = 1; i < len; i++)
 		printf(" %.02x", data[i]);
 	printf("\n");
+}
+
+static const char *wifi_wps_dev_passwd_id(uint16_t id)
+{
+	switch (id) {
+	case 0:
+		return "Default (PIN)";
+	case 1:
+		return "User-specified";
+	case 2:
+		return "Machine-specified";
+	case 3:
+		return "Rekey";
+	case 4:
+		return "PushButton";
+	case 5:
+		return "Registrar-specified";
+	default:
+		return "??";
+	}
 }
 
 static void print_wifi_wps(const uint8_t type, uint8_t len, const uint8_t *data,
