@@ -928,7 +928,7 @@ static void print_vht_oper(const uint8_t type, uint8_t len, const uint8_t *data,
 
 	printf("\n");
 	printf("\t\t * channel width: %d (%s)\n", data[0],
-		data[0] < ARRAY_SIZE(chandwidths) ? chandwidths[data[0]] : "unknown");
+		data[0] < sizeof(chandwidths)/sizeof(chandwidths[0]) ? chandwidths[data[0]] : "unknown");
 	printf("\t\t * center freq segment 1: %d\n", data[1]);
 	printf("\t\t * center freq segment 2: %d\n", data[2]);
 	printf("\t\t * VHT basic MCS set: 0x%.2x%.2x\n", data[4], data[3]);
