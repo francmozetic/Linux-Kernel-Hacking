@@ -263,6 +263,14 @@ struct ie_print {
 	uint8_t flags;
 };
 
+static void tab_on_first(bool *first)
+{
+	if (!*first)
+		printf("\t");
+	else
+		*first = false;
+}
+
 void print_ssid_escaped(const uint8_t len, const uint8_t *data)
 {
 	int i;
