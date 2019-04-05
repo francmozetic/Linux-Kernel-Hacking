@@ -1054,6 +1054,18 @@ static const struct ie_print ieprinters[] = {
 	[107] = { "802.11u Interworking", print_interworking, 0, 255, BIT(PRINT_SCAN), },
 };
 
+static void print_wifi_wpa(const uint8_t type, uint8_t len, const uint8_t *data,
+		const struct print_ies_data *ie_buffer)
+{
+	print_rsn_ie("TKIP", "IEEE 802.1X", len, data);
+}
+
+static const struct ie_print wifiprinters[] = {
+	[1] = { "WPA", print_wifi_wpa, 2, 255, BIT(PRINT_SCAN), },
+	[2] = { "WMM", print_wifi_wmm, 1, 255, BIT(PRINT_SCAN), },
+	[4] = { "WPS", print_wifi_wps, 0, 255, BIT(PRINT_SCAN), },
+};
+
 static void print_vendor(unsigned char len, unsigned char *data,
 			 bool unknown, enum print_ie_type ptype)
 {
@@ -1068,7 +1080,7 @@ static void print_vendor(unsigned char len, unsigned char *data,
 	}
 
 	if (len >= 4 && memcmp(data, ms_oui, 3) == 0) {
-		if (data[3] < ARRAY_SIZE(wifiprinters) &&
+		if (data[3] < (sizeof(wifiprinters)/sizeof(wifiprinters[0])) &&
 		    wifiprinters[data[3]].name &&
 		    wifiprinters[data[3]].flags & BIT(ptype)) {
 			print_ie(&wifiprinters[data[3]],
