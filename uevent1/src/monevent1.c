@@ -1656,6 +1656,38 @@ static const struct ie_print wifiprinters[] = {
 	[4] = { "WPS", print_wifi_wps, 0, 255, BIT(PRINT_SCAN), },
 };
 
+static const struct ie_print wfa_printers[] = {
+	[9] = { "P2P", print_p2p, 2, 255, BIT(PRINT_SCAN), },
+	[16] = { "HotSpot 2.0 Indication", print_hs20_ind, 1, 255, BIT(PRINT_SCAN), },
+	[18] = { "HotSpot 2.0 OSEN", print_wifi_osen, 1, 255, BIT(PRINT_SCAN), },
+	[28] = { "OWE Transition Mode", print_wifi_owe_tarns, 7, 255, BIT(PRINT_SCAN), },
+};
+
+static void print_ie(const struct ie_print *p, const uint8_t type, uint8_t len, const uint8_t *data,
+		const struct print_ies_data *ie_buffer)
+{
+	int i;
+
+	if (!p->print)
+		return;
+
+	printf("\t%s:", p->name);
+	if (len < p->minlen || len > p->maxlen) {
+		if (len > 1) {
+			printf(" <invalid: %d bytes:", len);
+			for (i = 0; i < len; i++)
+				printf(" %.02x", data[i]);
+			printf(">\n");
+		} else if (len)
+			printf(" <invalid: 1 byte: %.02x>\n", data[0]);
+		else
+			printf(" <invalid: no data>\n");
+		return;
+	}
+
+	p->print(type, len, data, ie_buffer);
+}
+
 static void print_vendor(unsigned char len, unsigned char *data,
 			 bool unknown, enum print_ie_type ptype)
 {
