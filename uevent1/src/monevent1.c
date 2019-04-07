@@ -1702,9 +1702,9 @@ static void print_vendor(unsigned char len, unsigned char *data,
 	}
 
 	if (len >= 4 && memcmp(data, ms_oui, 3) == 0) {
-		if (data[3] < (sizeof(wifiprinters)/sizeof(wifiprinters[0])) &&
+		if (data[3] < sizeof(wifiprinters)/sizeof(wifiprinters[0]) &&
 		    wifiprinters[data[3]].name &&
-		    wifiprinters[data[3]].flags & BIT(ptype)) {
+			(wifiprinters[data[3]].flags & BIT(ptype))) {
 			print_ie(&wifiprinters[data[3]],
 				 data[3], len - 4, data + 4,
 				 NULL);
@@ -1720,9 +1720,9 @@ static void print_vendor(unsigned char len, unsigned char *data,
 	}
 
 	if (len >= 4 && memcmp(data, wfa_oui, 3) == 0) {
-		if (data[3] < ARRAY_SIZE(wfa_printers) &&
+		if (data[3] < sizeof(wfa_printers)/sizeof(wfa_printers[0]) &&
 		    wfa_printers[data[3]].name &&
-		    wfa_printers[data[3]].flags & BIT(ptype)) {
+			(wfa_printers[data[3]].flags & BIT(ptype))) {
 			print_ie(&wfa_printers[data[3]],
 				 data[3], len - 4, data + 4,
 				 NULL);
