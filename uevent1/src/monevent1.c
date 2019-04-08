@@ -1754,9 +1754,9 @@ void print_ies(unsigned char *ie, int ielen, bool unknown, enum print_ie_type pt
 		.ielen = ielen };
 
 	while (ielen >= 2 && ielen >= ie[1]) {
-		if (ie[0] < ARRAY_SIZE(ieprinters) &&
+		if (ie[0] < sizeof(ieprinters)/sizeof(ieprinters[0]) &&
 		    ieprinters[ie[0]].name &&
-		    ieprinters[ie[0]].flags & BIT(ptype)) {
+		    (ieprinters[ie[0]].flags & BIT(ptype))) {
 			print_ie(&ieprinters[ie[0]],
 				 ie[0], ie[1], ie + 2, &ie_buffer);
 		} else if (ie[0] == 221 /* vendor */) {
