@@ -1657,10 +1657,12 @@ static const struct ie_print wifiprinters[] = {
 };
 
 static const struct ie_print wfa_printers[] = {
+    /*
 	[9] = { "P2P", print_p2p, 2, 255, BIT(PRINT_SCAN), },
 	[16] = { "HotSpot 2.0 Indication", print_hs20_ind, 1, 255, BIT(PRINT_SCAN), },
 	[18] = { "HotSpot 2.0 OSEN", print_wifi_osen, 1, 255, BIT(PRINT_SCAN), },
 	[28] = { "OWE Transition Mode", print_wifi_owe_tarns, 7, 255, BIT(PRINT_SCAN), },
+	*/
 };
 
 static void print_ie(const struct ie_print *p, const uint8_t type, uint8_t len, const uint8_t *data,
