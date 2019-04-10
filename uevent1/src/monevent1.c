@@ -621,7 +621,6 @@ void print_ht_mcs(const __u8 *mcs)
 
 	if (max_rx_supp_data_rate)
 		printf("\t\tHT Max RX data rate: %d Mbps\n", max_rx_supp_data_rate);
-	/* XXX: else see 9.6.0e.5.3 how to get this I think */
 
 	if (tx_mcs_set_defined) {
 		if (tx_mcs_set_equal) {
