@@ -33,7 +33,7 @@
 
 #define NETLINK_EXT_ACK			11
 
-int *time_numbers ()
+int *time_numbers()
 {
   const struct tm *tm_ptr;
   time_t now;
