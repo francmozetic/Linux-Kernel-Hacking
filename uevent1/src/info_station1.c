@@ -40,6 +40,33 @@ void mac_addr_n2a(char *mac_addr, const unsigned char *arg)
 	}
 }
 
+static char *get_chain_signal(struct nlattr *attr_list)
+{
+	struct nlattr *attr;
+	static char buf[64];
+	char *cur = buf;
+	int i = 0, rem;
+	const char *prefix;
+
+	if (!attr_list)
+		return "";
+
+	nla_for_each_nested(attr, attr_list, rem) {
+		if (i++ > 0)
+			prefix = ", ";
+		else
+			prefix = "[";
+
+		cur += snprintf(cur, sizeof(buf) - (cur - buf), "%s%d", prefix,
+				(int8_t) nla_get_u8(attr));
+	}
+
+	if (i)
+		snprintf(cur, sizeof(buf) - (cur - buf), "] ");
+
+	return buf;
+}
+
 static int print_sta_handler(struct nl_msg *msg, void *arg)
 {
 	struct nlattr *tb[NL80211_ATTR_MAX + 1];
@@ -77,6 +104,8 @@ static int print_sta_handler(struct nl_msg *msg, void *arg)
 		[NL80211_STA_INFO_BSS_PARAM] = { .type = NLA_NESTED },
 		[NL80211_STA_INFO_RX_DURATION] = { .type = NLA_U64 },
 	};
+
+	char *chain;
 
 	nla_parse(tb, NL80211_ATTR_MAX, genlmsg_attrdata(gnlh, 0), genlmsg_attrlen(gnlh, 0), NULL);
 
@@ -120,6 +149,11 @@ static int print_sta_handler(struct nl_msg *msg, void *arg)
 	if (sinfo[NL80211_STA_INFO_RX_DROP_MISC])
 		printf("\n\trx drop misc:\t%llu",
 		       (unsigned long long)nla_get_u64(sinfo[NL80211_STA_INFO_RX_DROP_MISC]));
+
+	chain = get_chain_signal(sinfo[NL80211_STA_INFO_CHAIN_SIGNAL_AVG]);
+	if (sinfo[NL80211_STA_INFO_SIGNAL_AVG])
+		printf("\n\tsignal avg:\t%d %sdBm",
+				(int8_t)nla_get_u8(sinfo[NL80211_STA_INFO_SIGNAL_AVG]), chain);
 
 
 
