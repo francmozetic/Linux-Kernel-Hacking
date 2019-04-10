@@ -1840,9 +1840,9 @@ static void print_capa_non_dmg(__u16 capa)
 		printf(" ImmediateBACK");
 }
 
-static int callback_dump(struct nl_msg *msg, void *arg)
+static int print_bss_handler(struct nl_msg *msg, void *arg)
 {
-	/* callback_dump() prints SSIDs to stdout.
+    /* callback_dump() prints SSIDs to stdout.
 	 * @NL80211_BSS_BSSID: BSSID of the BSS (6 octets)
 	 * @NL80211_BSS_FREQUENCY: frequency in MHz (u32)
 	 * @NL80211_BSS_TSF: TSF of the received probe response/beacon (u64)
@@ -1879,21 +1879,18 @@ static int callback_dump(struct nl_msg *msg, void *arg)
 		[NL80211_BSS_SEEN_MS_AGO] = { .type = NLA_U32 },
 		[NL80211_BSS_BEACON_IES] = { },
 	};
-
 	struct scan_params *params = arg;
 	int show = params->show_both_ie_sets ? 2 : 1;
 	bool is_dmg = false;
 
 	nla_parse(tb, NL80211_ATTR_MAX, genlmsg_attrdata(gnlh, 0),
-		  genlmsg_attrlen(gnlh, 0), NULL);
+			genlmsg_attrlen(gnlh, 0), NULL);
 
 	if (!tb[NL80211_ATTR_BSS]) {
 		fprintf(stderr, "bss info missing!\n");
 		return NL_SKIP;
 	}
-	if (nla_parse_nested(bss, NL80211_BSS_MAX,
-			     tb[NL80211_ATTR_BSS],
-			     bss_policy)) {
+	if (nla_parse_nested(bss, NL80211_BSS_MAX, tb[NL80211_ATTR_BSS], bss_policy)) {
 		fprintf(stderr, "failed to parse nested attributes!\n");
 		return NL_SKIP;
 	}
@@ -1930,7 +1927,8 @@ static int callback_dump(struct nl_msg *msg, void *arg)
 	if (bss[NL80211_BSS_LAST_SEEN_BOOTTIME]) {
 		unsigned long long bt;
 		bt = (unsigned long long)nla_get_u64(bss[NL80211_BSS_LAST_SEEN_BOOTTIME]);
-		printf("\tlast seen: %llu.%.3llus [boottime]\n", bt/1000000000, (bt%1000000000)/1000000);
+		printf("\tlast seen: %llu.%.3llus [boottime]\n",
+				bt/1000000000, (bt%1000000000)/1000000);
 	}
 
 	if (bss[NL80211_BSS_TSF]) {
