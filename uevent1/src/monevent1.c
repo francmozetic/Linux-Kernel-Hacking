@@ -1879,12 +1879,18 @@ static int print_bss_handler(struct nl_msg *msg, void *arg)
 		[NL80211_BSS_SEEN_MS_AGO] = { .type = NLA_U32 },
 		[NL80211_BSS_BEACON_IES] = { },
 	};
-	struct scan_params *params = arg;
-	int show = params->show_both_ie_sets ? 2 : 1;
+
+	struct scan_params params;
+	memset(&params, 0, sizeof(params));
+
+	params.unknown = true;
+	params.show_both_ie_sets = false;
+	params.type = PRINT_SCAN;
+
+	int show = params.show_both_ie_sets ? 2 : 1;
 	bool is_dmg = false;
 
-	nla_parse(tb, NL80211_ATTR_MAX, genlmsg_attrdata(gnlh, 0),
-			genlmsg_attrlen(gnlh, 0), NULL);
+	nla_parse(tb, NL80211_ATTR_MAX, genlmsg_attrdata(gnlh, 0), 	genlmsg_attrlen(gnlh, 0), NULL);
 
 	if (!tb[NL80211_ATTR_BSS]) {
 		fprintf(stderr, "bss info missing!\n");
@@ -1977,16 +1983,60 @@ static int print_bss_handler(struct nl_msg *msg, void *arg)
 				(bcnies && (nla_len(ies) != nla_len(bcnies) ||
 				memcmp(nla_data(ies), nla_data(bcnies), nla_len(ies)))))
 			printf("\tInformation elements from Probe response frame:\n");
-		print_ies(nla_data(ies), nla_len(ies), params->unknown, params->type);
+		print_ies(nla_data(ies), nla_len(ies), params.unknown, params.type);
 	}
 	if (bss[NL80211_BSS_BEACON_IES] && show--) {
 		printf("\tInformation elements from Beacon frame:\n");
 		print_ies(nla_data(bss[NL80211_BSS_BEACON_IES]),
 				nla_len(bss[NL80211_BSS_BEACON_IES]),
-				params->unknown, params->type);
+				params.unknown, params.type);
 	}
 
 	return NL_SKIP;
+}
+
+static int callback_dump(struct nl_msg *msg, void *arg) {
+    // Called by the kernel with a dump of the successful scan's data. Called for each SSID.
+    struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
+    char mac_addr[20];
+    struct nlattr *tb[NL80211_ATTR_MAX + 1];
+    struct nlattr *bss[NL80211_BSS_MAX + 1];
+    static struct nla_policy bss_policy[NL80211_BSS_MAX + 1] = {
+        [NL80211_BSS_TSF] = { .type = NLA_U64 },
+        [NL80211_BSS_FREQUENCY] = { .type = NLA_U32 },
+        [NL80211_BSS_BSSID] = { },
+        [NL80211_BSS_BEACON_INTERVAL] = { .type = NLA_U16 },
+        [NL80211_BSS_CAPABILITY] = { .type = NLA_U16 },
+        [NL80211_BSS_INFORMATION_ELEMENTS] = { },
+        [NL80211_BSS_SIGNAL_MBM] = { .type = NLA_U32 },
+        [NL80211_BSS_SIGNAL_UNSPEC] = { .type = NLA_U8 },
+        [NL80211_BSS_STATUS] = { .type = NLA_U32 },
+        [NL80211_BSS_SEEN_MS_AGO] = { .type = NLA_U32 },
+        [NL80211_BSS_BEACON_IES] = { },
+    };
+
+    // Parse and error check.
+    nla_parse(tb, NL80211_ATTR_MAX, genlmsg_attrdata(gnlh, 0), genlmsg_attrlen(gnlh, 0), NULL);
+    if (!tb[NL80211_ATTR_BSS]) {
+        printf("bss info missing!\n");
+        return NL_SKIP;
+    }
+    if (nla_parse_nested(bss, NL80211_BSS_MAX, tb[NL80211_ATTR_BSS], bss_policy)) {
+        printf("failed to parse nested attributes!\n");
+        return NL_SKIP;
+    }
+    if (!bss[NL80211_BSS_BSSID]) return NL_SKIP;
+    if (!bss[NL80211_BSS_INFORMATION_ELEMENTS]) return NL_SKIP;
+
+    // Start printing.
+    mac_addr_n2a(mac_addr, nla_data(bss[NL80211_BSS_BSSID]));
+    printf("%s, ", mac_addr);
+    printf("%d MHz, ", nla_get_u32(bss[NL80211_BSS_FREQUENCY]));
+    printf("\n");
+
+
+
+    return NL_SKIP;
 }
 
 int do_scan_trigger(struct nl_sock *socket, int if_index, int driver_id) {
@@ -2354,10 +2404,10 @@ int main(void)
     struct nl_msg *msg = nlmsg_alloc();    // Allocate a message
     genlmsg_put(msg, 0, 0, driver_id, 0, NLM_F_DUMP, NL80211_CMD_GET_SCAN, 0);    // Setup which command to run
     nla_put_u32(msg, NL80211_ATTR_IFINDEX, if_index);    // Add message attribute, which interface to use
-    nl_socket_modify_cb(socket, NL_CB_VALID, NL_CB_CUSTOM, callback_dump, NULL);    // Add the callback
+    nl_socket_modify_cb(socket, NL_CB_VALID, NL_CB_CUSTOM, print_bss_handler, NULL);    // Add the callback
     int ret = nl_send_auto(socket, msg);    // Send the message
     printf("NL80211_CMD_GET_SCAN sent %d bytes to the kernel.\n", ret);
-    ret = nl_recvmsgs_default(socket);    // Retrieve the kernel's answer (callback_dump() prints SSIDs to stdout)
+    ret = nl_recvmsgs_default(socket);    // Retrieve the kernel's answer (print_bss_handler() prints SSIDs to stdout)
     nlmsg_free(msg);
 
     if (ret < 0) {
