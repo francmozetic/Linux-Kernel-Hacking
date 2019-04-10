@@ -1995,50 +1995,6 @@ static int print_bss_handler(struct nl_msg *msg, void *arg)
 	return NL_SKIP;
 }
 
-static int callback_dump(struct nl_msg *msg, void *arg) {
-    // Called by the kernel with a dump of the successful scan's data. Called for each SSID.
-    struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
-    char mac_addr[20];
-    struct nlattr *tb[NL80211_ATTR_MAX + 1];
-    struct nlattr *bss[NL80211_BSS_MAX + 1];
-    static struct nla_policy bss_policy[NL80211_BSS_MAX + 1] = {
-        [NL80211_BSS_TSF] = { .type = NLA_U64 },
-        [NL80211_BSS_FREQUENCY] = { .type = NLA_U32 },
-        [NL80211_BSS_BSSID] = { },
-        [NL80211_BSS_BEACON_INTERVAL] = { .type = NLA_U16 },
-        [NL80211_BSS_CAPABILITY] = { .type = NLA_U16 },
-        [NL80211_BSS_INFORMATION_ELEMENTS] = { },
-        [NL80211_BSS_SIGNAL_MBM] = { .type = NLA_U32 },
-        [NL80211_BSS_SIGNAL_UNSPEC] = { .type = NLA_U8 },
-        [NL80211_BSS_STATUS] = { .type = NLA_U32 },
-        [NL80211_BSS_SEEN_MS_AGO] = { .type = NLA_U32 },
-        [NL80211_BSS_BEACON_IES] = { },
-    };
-
-    // Parse and error check.
-    nla_parse(tb, NL80211_ATTR_MAX, genlmsg_attrdata(gnlh, 0), genlmsg_attrlen(gnlh, 0), NULL);
-    if (!tb[NL80211_ATTR_BSS]) {
-        printf("bss info missing!\n");
-        return NL_SKIP;
-    }
-    if (nla_parse_nested(bss, NL80211_BSS_MAX, tb[NL80211_ATTR_BSS], bss_policy)) {
-        printf("failed to parse nested attributes!\n");
-        return NL_SKIP;
-    }
-    if (!bss[NL80211_BSS_BSSID]) return NL_SKIP;
-    if (!bss[NL80211_BSS_INFORMATION_ELEMENTS]) return NL_SKIP;
-
-    // Start printing.
-    mac_addr_n2a(mac_addr, nla_data(bss[NL80211_BSS_BSSID]));
-    printf("%s, ", mac_addr);
-    printf("%d MHz, ", nla_get_u32(bss[NL80211_BSS_FREQUENCY]));
-    printf("\n");
-
-
-
-    return NL_SKIP;
-}
-
 int do_scan_trigger(struct nl_sock *socket, int if_index, int driver_id) {
 	// Starts the scan and waits for it to finish. Does not return until the scan is done or has been aborted.
 	struct trigger_results results = {
