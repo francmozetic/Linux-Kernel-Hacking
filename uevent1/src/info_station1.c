@@ -155,6 +155,18 @@ static int print_sta_handler(struct nl_msg *msg, void *arg)
 		printf("\n\tsignal avg:\t%d %sdBm",
 				(int8_t)nla_get_u8(sinfo[NL80211_STA_INFO_SIGNAL_AVG]), chain);
 
+	chain = get_chain_signal(sinfo[NL80211_STA_INFO_CHAIN_SIGNAL_AVG]);
+	if (sinfo[NL80211_STA_INFO_SIGNAL_AVG])
+		printf("\n\tsignal avg:\t%d %sdBm",
+			(int8_t)nla_get_u8(sinfo[NL80211_STA_INFO_SIGNAL_AVG]), chain);
+
+	if (sinfo[NL80211_STA_INFO_BEACON_SIGNAL_AVG])
+		printf("\n\tbeacon signal avg:\t%d dBm",
+		       (int8_t)nla_get_u8(sinfo[NL80211_STA_INFO_BEACON_SIGNAL_AVG]));
+	if (sinfo[NL80211_STA_INFO_T_OFFSET])
+		printf("\n\tToffset:\t%llu us",
+		       (unsigned long long)nla_get_u64(sinfo[NL80211_STA_INFO_T_OFFSET]));
+
 
 
 	printf("\n");
