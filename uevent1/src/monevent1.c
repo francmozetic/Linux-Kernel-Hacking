@@ -1860,6 +1860,11 @@ static int print_bss_handler(struct nl_msg *msg, void *arg)
 	 *	@NL80211_BSS_SEEN_MS_AGO: age of this BSS entry in ms
 	 * @NL80211_BSS_BEACON_IES: binary attribute containing the raw information
 	 *	elements from a Beacon frame (bin)
+	 *
+	 * enum nl80211_bss_status - BSS "status"
+	 * @NL80211_BSS_STATUS_AUTHENTICATED: Authenticated with this BSS.
+	 * @NL80211_BSS_STATUS_ASSOCIATED: Associated with this BSS.
+	 * @NL80211_BSS_STATUS_IBSS_JOINED: Joined to this IBSS.
 	 */
 	struct nlattr *tb[NL80211_ATTR_MAX + 1];
 	struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
