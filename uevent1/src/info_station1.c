@@ -12,15 +12,8 @@
  */
 
 #include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <string.h>
-#include <ctype.h>    /* isprint */
-#include <fcntl.h>
-#include <time.h>
 #include <errno.h>
 
-#include <sys/uio.h>
 #include <net/if.h>
 
 #include <linux/netlink.h>
@@ -83,8 +76,6 @@ static int print_sta_handler(struct nl_msg *msg, void *arg)
 		[NL80211_STA_INFO_TID_STATS] = { .type = NLA_NESTED },
 		[NL80211_STA_INFO_BSS_PARAM] = { .type = NLA_NESTED },
 		[NL80211_STA_INFO_RX_DURATION] = { .type = NLA_U64 },
-		[NL80211_STA_INFO_ACK_SIGNAL] = { .type = NLA_U8 },
-		[NL80211_STA_INFO_ACK_SIGNAL_AVG] = { .type = NLA_U8 },
 	};
 
 	nla_parse(tb, NL80211_ATTR_MAX, genlmsg_attrdata(gnlh, 0), genlmsg_attrlen(gnlh, 0), NULL);
