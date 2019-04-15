@@ -69,6 +69,52 @@ static char *get_chain_signal(struct nlattr *attr_list)
 
 static int print_sta_handler(struct nl_msg *msg, void *arg)
 {
+	/**
+	 * enum nl80211_sta_info - station information
+	 *
+	 * These attribute types are used with %NL80211_ATTR_STA_INFO
+	 * when getting information about a station.
+	 *
+	 * @__NL80211_STA_INFO_INVALID: attribute number 0 is reserved
+	 * @NL80211_STA_INFO_INACTIVE_TIME: time since last activity (u32, msecs)
+	 * @NL80211_STA_INFO_RX_BYTES: total received bytes (u32, from this station)
+	 * @NL80211_STA_INFO_TX_BYTES: total transmitted bytes (u32, to this station)
+	 * @NL80211_STA_INFO_RX_BYTES64: total received bytes (u64, from this station)
+	 * @NL80211_STA_INFO_TX_BYTES64: total transmitted bytes (u64, to this station)
+	 * @NL80211_STA_INFO_SIGNAL: signal strength of last received PPDU (u8, dBm)
+	 * @NL80211_STA_INFO_TX_BITRATE: current unicast tx rate, nested attribute
+	 * 	containing info as possible, see &enum nl80211_rate_info
+	 * @NL80211_STA_INFO_RX_PACKETS: total received packet (u32, from this station)
+	 * @NL80211_STA_INFO_TX_PACKETS: total transmitted packets (u32, to this
+	 *	station)
+	 * @NL80211_STA_INFO_TX_RETRIES: total retries (u32, to this station)
+	 * @NL80211_STA_INFO_TX_FAILED: total failed packets (u32, to this station)
+	 * @NL80211_STA_INFO_SIGNAL_AVG: signal strength average (u8, dBm)
+	 * @NL80211_STA_INFO_LLID: the station's mesh LLID
+	 * @NL80211_STA_INFO_PLID: the station's mesh PLID
+	 * @NL80211_STA_INFO_PLINK_STATE: peer link state for the station
+	 *	(see %enum nl80211_plink_state)
+	 * @NL80211_STA_INFO_RX_BITRATE: last unicast data frame rx rate, nested
+	 *	attribute, like NL80211_STA_INFO_TX_BITRATE.
+	 * @NL80211_STA_INFO_BSS_PARAM: current station's view of BSS, nested attribute
+	 *     containing info as possible, see &enum nl80211_sta_bss_param
+	 * @NL80211_STA_INFO_CONNECTED_TIME: time since the station is last connected
+	 * @NL80211_STA_INFO_STA_FLAGS: Contains a struct nl80211_sta_flag_update.
+	 * @NL80211_STA_INFO_BEACON_LOSS: count of times beacon loss was detected (u32)
+	 * @NL80211_STA_INFO_T_OFFSET: timing offset with respect to this STA (s64)
+	 * @NL80211_STA_INFO_LOCAL_PM: local mesh STA link-specific power mode
+	 * @NL80211_STA_INFO_PEER_PM: peer mesh STA link-specific power mode
+	 * @NL80211_STA_INFO_NONPEER_PM: neighbor mesh STA power save mode towards
+	 *	non-peer STA
+	 * @NL80211_STA_INFO_CHAIN_SIGNAL: per-chain signal strength of last PPDU
+	 *	Contains a nested array of signal strength attributes (u8, dBm)
+	 * @NL80211_STA_INFO_CHAIN_SIGNAL_AVG: per-chain signal strength average
+	 *	Same format as NL80211_STA_INFO_CHAIN_SIGNAL.
+	 * @NL80211_STA_EXPECTED_THROUGHPUT: expected throughput considering also the
+	 *	802.11 header (u32, kbps)
+	 * @__NL80211_STA_INFO_AFTER_LAST: internal
+	 * @NL80211_STA_INFO_MAX: highest possible station info attribute
+	 */
 	struct nlattr *tb[NL80211_ATTR_MAX + 1];
 	struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
 	struct nlattr *sinfo[NL80211_STA_INFO_MAX + 1];
