@@ -295,6 +295,14 @@ static int print_sta_handler(struct nl_msg *msg, void *arg)
 				printf("no");
 		}
 
+		if (sta_flags->mask & BIT(NL80211_STA_FLAG_ASSOCIATED)) {
+			printf("\n\tassociated:\t");
+			if (sta_flags->set & BIT(NL80211_STA_FLAG_ASSOCIATED))
+				printf("yes");
+			else
+				printf("no");
+		}
+
 
 
 	}
