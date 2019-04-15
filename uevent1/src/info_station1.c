@@ -252,6 +252,11 @@ static int print_sta_handler(struct nl_msg *msg, void *arg)
 
 	nla_parse(tb, NL80211_ATTR_MAX, genlmsg_attrdata(gnlh, 0), genlmsg_attrlen(gnlh, 0), NULL);
 
+	if (nla_parse_nested(sinfo, NL80211_STA_INFO_MAX, tb[NL80211_ATTR_STA_INFO], stats_policy)) {
+		fprintf(stderr, "failed to parse nested attributes!\n");
+		return NL_SKIP;
+	}
+
 	mac_addr_n2a(mac_addr, nla_data(tb[NL80211_ATTR_MAC]));
 	if_indextoname(nla_get_u32(tb[NL80211_ATTR_IFINDEX]), dev);
 	printf("Station %s (on %s)", mac_addr, dev);
