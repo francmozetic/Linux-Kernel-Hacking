@@ -213,6 +213,13 @@ static int print_sta_handler(struct nl_msg *msg, void *arg)
 		printf("\n\tToffset:\t%llu us",
 		       (unsigned long long)nla_get_u64(sinfo[NL80211_STA_INFO_T_OFFSET]));
 
+	if (sinfo[NL80211_STA_INFO_TX_BITRATE]) {
+		char buf[100];
+
+		parse_bitrate(sinfo[NL80211_STA_INFO_TX_BITRATE], buf, sizeof(buf));
+		printf("\n\ttx bitrate:\t%s", buf);
+	}
+
 
 
 	printf("\n");
