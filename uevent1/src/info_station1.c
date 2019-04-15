@@ -1,10 +1,10 @@
 /**
  * @file: info_station1.c
  * @author: Aleksander Mozetic
- * @date: 28 February 2019
+ * @date: 15 April 2019
  * @version: 1.2.2.0
  * @copyright: 2019 IndigoSoft
- * @brief: A userspace application for wireless interface scanning.
+ * @brief: Getting information about a station.
  *
  * Resources:
  * https://git.kernel.org/pub/scm/linux/kernel/git/jberg/iw.git
@@ -39,6 +39,54 @@ void mac_addr_n2a(char *mac_addr, const unsigned char *arg)
 			sprintf(mac_addr+l, ":%02x", arg[i]);
 			l += 3;
 		}
+	}
+}
+
+static void parse_bss_param(struct nlattr *bss_param_attr)
+{
+	struct nlattr *bss_param_info[NL80211_STA_BSS_PARAM_MAX + 1], *info;
+	static struct nla_policy bss_poilcy[NL80211_STA_BSS_PARAM_MAX + 1] = {
+		[NL80211_STA_BSS_PARAM_CTS_PROT] = { .type = NLA_FLAG },
+		[NL80211_STA_BSS_PARAM_SHORT_PREAMBLE] = { .type = NLA_FLAG },
+		[NL80211_STA_BSS_PARAM_SHORT_SLOT_TIME] = { .type = NLA_FLAG },
+		[NL80211_STA_BSS_PARAM_DTIM_PERIOD] = { .type = NLA_U8 },
+		[NL80211_STA_BSS_PARAM_BEACON_INTERVAL] = { .type = NLA_U16 },
+	};
+
+	if (nla_parse_nested(bss_param_info, NL80211_STA_BSS_PARAM_MAX,
+			     bss_param_attr, bss_poilcy)) {
+		printf("failed to parse nested bss param attributes!");
+	}
+
+	info = bss_param_info[NL80211_STA_BSS_PARAM_DTIM_PERIOD];
+	if (info)
+		printf("\n\tDTIM period:\t%u", nla_get_u8(info));
+	info = bss_param_info[NL80211_STA_BSS_PARAM_BEACON_INTERVAL];
+	if (info)
+		printf("\n\tbeacon interval:%u", nla_get_u16(info));
+	info = bss_param_info[NL80211_STA_BSS_PARAM_CTS_PROT];
+	if (info) {
+		printf("\n\tCTS protection:");
+		if (nla_get_u16(info))
+			printf("\tyes");
+		else
+			printf("\tno");
+	}
+	info = bss_param_info[NL80211_STA_BSS_PARAM_SHORT_PREAMBLE];
+	if (info) {
+		printf("\n\tshort preamble:");
+		if (nla_get_u16(info))
+			printf("\tyes");
+		else
+			printf("\tno");
+	}
+	info = bss_param_info[NL80211_STA_BSS_PARAM_SHORT_SLOT_TIME];
+	if (info) {
+		printf("\n\tshort slot time:");
+		if (nla_get_u16(info))
+			printf("yes");
+		else
+			printf("no");
 	}
 }
 
@@ -301,6 +349,12 @@ static int print_sta_handler(struct nl_msg *msg, void *arg)
 				printf("yes");
 			else
 				printf("no");
+		}
+
+		if (sinfo[NL80211_STA_INFO_BSS_PARAM])
+			parse_bss_param(sinfo[NL80211_STA_INFO_BSS_PARAM]);
+		if (sinfo[NL80211_STA_INFO_CONNECTED_TIME]) {
+			printf("\n\tconnected time:\t%u seconds", nla_get_u32(sinfo[NL80211_STA_INFO_CONNECTED_TIME]));
 		}
 
 
