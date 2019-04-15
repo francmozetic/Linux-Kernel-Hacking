@@ -24,6 +24,8 @@
 #include <netlink/genl/genl.h>
 #include <netlink/genl/ctrl.h>
 
+#define BIT(x) (1ULL<<(x))
+
 void mac_addr_n2a(char *mac_addr, const unsigned char *arg)
 {
 	int i, l;
@@ -274,7 +276,19 @@ static int print_sta_handler(struct nl_msg *msg, void *arg)
 		printf("\n\trx bitrate:\t%s", buf);
 	}
 
+	if (sinfo[NL80211_STA_INFO_STA_FLAGS]) {
+		sta_flags = (struct nl80211_sta_flag_update *)
+			    nla_data(sinfo[NL80211_STA_INFO_STA_FLAGS]);
 
+		if (sta_flags->mask & BIT(NL80211_STA_FLAG_AUTHORIZED)) {
+			printf("\n\tauthorized:\t");
+			if (sta_flags->set & BIT(NL80211_STA_FLAG_AUTHORIZED))
+				printf("yes");
+			else
+				printf("no");
+		}
+
+	}
 
 	printf("\n");
 	return NL_SKIP;
