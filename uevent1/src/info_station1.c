@@ -277,8 +277,7 @@ static int print_sta_handler(struct nl_msg *msg, void *arg)
 	}
 
 	if (sinfo[NL80211_STA_INFO_STA_FLAGS]) {
-		sta_flags = (struct nl80211_sta_flag_update *)
-			    nla_data(sinfo[NL80211_STA_INFO_STA_FLAGS]);
+		sta_flags = (struct nl80211_sta_flag_update *)nla_data(sinfo[NL80211_STA_INFO_STA_FLAGS]);
 
 		if (sta_flags->mask & BIT(NL80211_STA_FLAG_AUTHORIZED)) {
 			printf("\n\tauthorized:\t");
@@ -287,6 +286,16 @@ static int print_sta_handler(struct nl_msg *msg, void *arg)
 			else
 				printf("no");
 		}
+
+		if (sta_flags->mask & BIT(NL80211_STA_FLAG_AUTHENTICATED)) {
+			printf("\n\tauthenticated:\t");
+			if (sta_flags->set & BIT(NL80211_STA_FLAG_AUTHENTICATED))
+				printf("yes");
+			else
+				printf("no");
+		}
+
+
 
 	}
 
