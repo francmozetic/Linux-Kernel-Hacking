@@ -220,6 +220,13 @@ static int print_sta_handler(struct nl_msg *msg, void *arg)
 		printf("\n\ttx bitrate:\t%s", buf);
 	}
 
+	if (sinfo[NL80211_STA_INFO_RX_BITRATE]) {
+		char buf[100];
+
+		parse_bitrate(sinfo[NL80211_STA_INFO_RX_BITRATE], buf, sizeof(buf));
+		printf("\n\trx bitrate:\t%s", buf);
+	}
+
 
 
 	printf("\n");
