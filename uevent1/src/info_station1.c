@@ -45,7 +45,7 @@ void mac_addr_n2a(char *mac_addr, const unsigned char *arg)
 static void parse_bss_param(struct nlattr *bss_param_attr)
 {
 	struct nlattr *bss_param_info[NL80211_STA_BSS_PARAM_MAX + 1], *info;
-	static struct nla_policy bss_poilcy[NL80211_STA_BSS_PARAM_MAX + 1] = {
+	static struct nla_policy bss_policy[NL80211_STA_BSS_PARAM_MAX + 1] = {
 		[NL80211_STA_BSS_PARAM_CTS_PROT] = { .type = NLA_FLAG },
 		[NL80211_STA_BSS_PARAM_SHORT_PREAMBLE] = { .type = NLA_FLAG },
 		[NL80211_STA_BSS_PARAM_SHORT_SLOT_TIME] = { .type = NLA_FLAG },
@@ -54,7 +54,7 @@ static void parse_bss_param(struct nlattr *bss_param_attr)
 	};
 
 	if (nla_parse_nested(bss_param_info, NL80211_STA_BSS_PARAM_MAX,
-			     bss_param_attr, bss_poilcy)) {
+			     bss_param_attr, bss_policy)) {
 		printf("failed to parse nested bss param attributes!");
 	}
 
