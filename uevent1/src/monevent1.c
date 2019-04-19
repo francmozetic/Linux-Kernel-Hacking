@@ -2352,10 +2352,27 @@ int main(void)
 	// Open socket to kernel.
 	// Allocate new netlink socket in memory.
 	struct nl_sock *socket = nl_socket_alloc();
+	if (!socket) {
+		fprintf(stderr, "Failed to allocate netlink socket.\n");
+		return -ENOMEM;
+	}
+
 	// Create file descriptor and bind socket.
-	genl_connect(socket);
+	if (genl_connect(socket)) {
+		fprintf(stderr, "Failed to connect to generic netlink.\n");
+		nl_socket_free(socket);
+		return -ENOLINK;
+	}
+
+	nl_socket_set_buffer_size(socket, 8192, 8192);
+
 	// Resolve Generic Netlink family name to numeric identifier (driver_id in this case).
 	int driver_id = genl_ctrl_resolve(socket, "nl80211");
+	if (driver_id < 0) {
+		fprintf(stderr, "Failed to resolve nl80211 to numeric identifier.\n");
+		nl_socket_free(socket);
+		return -ENOENT;
+	}
 
 	// Issue NL80211_CMD_GET_STATION to the kernel and wait for it to finish.
 	int err = get_station_info(socket, if_index, driver_id);
