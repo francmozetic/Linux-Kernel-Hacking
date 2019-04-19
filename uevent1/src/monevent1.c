@@ -2008,7 +2008,7 @@ int do_scan_trigger(struct nl_sock *socket, int if_index, int driver_id) {
 			.aborted = 0
 	};
 	struct nl_msg *msg;
-    struct nl_cb *cb;
+	struct nl_cb *cb;
     struct nl_msg *ssids_to_scan;
     int err;
     int ret;

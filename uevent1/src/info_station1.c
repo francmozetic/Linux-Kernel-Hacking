@@ -28,6 +28,28 @@
 
 #define BIT(x) (1ULL<<(x))
 
+static int error_handler(struct sockaddr_nl *nla, struct nlmsgerr *err, void *arg) {
+	// Callback for errors.
+    printf("error_handler() called.\n");
+    int *ret = arg;
+    *ret = err->error;
+    return NL_STOP;
+}
+
+static int finish_handler(struct nl_msg *msg, void *arg) {
+    // Callback for NL_CB_FINISH.
+    int *ret = arg;
+    *ret = 0;
+    return NL_SKIP;
+}
+
+static int ack_handler(struct nl_msg *msg, void *arg) {
+	// Callback for NL_CB_ACK.
+	int *ret = arg;
+    *ret = 0;
+    return NL_STOP;
+}
+
 static void parse_bss_param(struct nlattr *bss_param_attr)
 {
 	struct nlattr *bss_param_info[NL80211_STA_BSS_PARAM_MAX + 1], *info;
@@ -362,12 +384,32 @@ struct info_results {
 
 int get_station_info(struct nl_sock *socket, int if_index, int driver_id) {
 	// Gets information about a station.
+	struct info_results results = {
+			.done = 0,
+	};
+    int err = 1;
 
+    // Allocate the messages and callback handler.
+	struct nl_msg *msg = nlmsg_alloc();
+    if (!msg) {
+        printf("Failed to allocate netlink message for msg.\n");
+        return -ENOMEM;
+    }
+    struct nl_cb *cb = nl_cb_alloc(NL_CB_DEFAULT);
+    if (!cb) {
+        printf("Failed to allocate netlink callbacks.\n");
+        nlmsg_free(msg);
+        return -ENOMEM;
+    }
     // Setup the messages and callback handler.
-	struct nl_msg *msg = nlmsg_alloc();    // Allocate a message
-    genlmsg_put(msg, 0, 0, driver_id, 0, NLM_F_DUMP, NL80211_CMD_GET_STATION, 0);    // Setup which command to run
+    genlmsg_put(msg, 0, 0, driver_id, 0, 0, NL80211_CMD_GET_STATION, 0);    // Setup which command to run
     nla_put_u32(msg, NL80211_ATTR_IFINDEX, if_index);    // Add message attribute, which interface to use
     nl_socket_modify_cb(socket, NL_CB_VALID, NL_CB_CUSTOM, print_sta_handler, NULL);    // Add the callback
+
+    nl_cb_err(cb, NL_CB_CUSTOM, error_handler, &err);
+    nl_cb_set(cb, NL_CB_FINISH, NL_CB_CUSTOM, finish_handler, &err);
+    nl_cb_set(cb, NL_CB_ACK, NL_CB_CUSTOM, ack_handler, &err);
+
     int ret = nl_send_auto(socket, msg);    // Send the message
     printf("NL80211_CMD_GET_STATION sent %d bytes to the kernel.\n", ret);
     ret = nl_recvmsgs_default(socket);    // Retrieve the kernel's answer (print_sta_handler() prints station info to stdout)
