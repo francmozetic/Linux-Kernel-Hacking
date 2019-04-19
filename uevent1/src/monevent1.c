@@ -31,6 +31,8 @@
 #include <netlink/genl/genl.h>
 #include <netlink/genl/ctrl.h>
 
+#include "info_wifi.h"
+
 #define NETLINK_EXT_ACK			11
 
 int *time_numbers()
@@ -2075,54 +2077,6 @@ int do_scan_trigger(struct nl_sock *socket, int if_index, int driver_id) {
     nl_socket_drop_membership(socket, mcid);
     return 0;
 }
-
-struct info_results {
-    int done;
-    int aborted;
-};
-
-int get_station_info(struct nl_sock *socket, int if_index, int driver_id) {
-	// Gets information about a station.
-	struct info_results results = {
-			.done = 0,
-			.aborted = 0
-	};
-	struct nl_msg *msg;
-    struct nl_cb *cb;
-    int ret;
-
-	// Allocate the netlink message and callback handler.
-    msg = nlmsg_alloc();
-    if (!msg) {
-        printf("Failed to allocate the netlink message.\n");
-        return -ENOMEM;
-    }
-    cb = nl_cb_alloc(NL_CB_DEFAULT);
-    if (!cb) {
-        printf("Failed to allocate the netlink callback.\n");
-        nlmsg_free(msg);
-        return -ENOMEM;
-    }
-
-    // Setup the messages and callback handler.
-    genlmsg_put(msg, 0, 0, driver_id, 0, NLM_F_DUMP, NL80211_CMD_GET_STATION, 0);    // Setup which command to run
-    nla_put_u32(msg, NL80211_ATTR_IFINDEX, if_index);    // Add message attribute, which interface to use
-    ret = nl_send_auto(socket, msg);    // Send the message
-    printf("NL80211_CMD_GET_STATION sent %d bytes to the kernel.\n", ret);
-
-    // Now wait until getting information is done or aborted.
-    while (!results.done) nl_recvmsgs(socket, cb);
-    if (results.aborted) {
-    	printf("Error: Kernel aborted getting information.\n");
-    	return 1;
-    }
-    printf("Getting information is done.\n");
-
-    // Cleanup
-    nlmsg_free(msg);
-    nl_cb_put(cb);
-    return 0;
-}
 //________________________________________________________________________________________________________________
 
 static int (*registered_handler)(struct nl_msg *, void *);
@@ -2416,7 +2370,6 @@ int main(void)
     	printf("do_scan_trigger() failed with %d.\n", err);
     	return err;
     }
-	*/
 
     // Now get info for all SSIDs detected.
     struct nl_msg *msg = nlmsg_alloc();    // Allocate a message
@@ -2432,6 +2385,7 @@ int main(void)
     	printf("Error: nl_recvmsgs_default() returned %d (%s).\n", ret, nl_geterror(-ret));
     	return ret;
     }
+	*/
 
     return 0;
 }

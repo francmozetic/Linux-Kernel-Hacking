@@ -24,23 +24,9 @@
 #include <netlink/genl/genl.h>
 #include <netlink/genl/ctrl.h>
 
+#include "info_wifi.h"
+
 #define BIT(x) (1ULL<<(x))
-
-void mac_addr_n2a(char *mac_addr, const unsigned char *arg)
-{
-	int i, l;
-
-	l = 0;
-	for (i = 0; i < 6; i++) {
-		if (i == 0) {
-			sprintf(mac_addr+l, "%02x", arg[i]);
-			l += 2;
-		} else {
-			sprintf(mac_addr+l, ":%02x", arg[i]);
-			l += 3;
-		}
-	}
-}
 
 static void parse_bss_param(struct nlattr *bss_param_attr)
 {
@@ -368,4 +354,32 @@ static int print_sta_handler(struct nl_msg *msg, void *arg)
 
 	printf("\n");
 	return NL_SKIP;
+}
+
+struct info_results {
+    int done;
+};
+
+int get_station_info(struct nl_sock *socket, int if_index, int driver_id) {
+	// Gets information about a station.
+
+    // Setup the messages and callback handler.
+	struct nl_msg *msg = nlmsg_alloc();    // Allocate a message
+    genlmsg_put(msg, 0, 0, driver_id, 0, NLM_F_DUMP, NL80211_CMD_GET_STATION, 0);    // Setup which command to run
+    nla_put_u32(msg, NL80211_ATTR_IFINDEX, if_index);    // Add message attribute, which interface to use
+    nl_socket_modify_cb(socket, NL_CB_VALID, NL_CB_CUSTOM, print_sta_handler, NULL);    // Add the callback
+    int ret = nl_send_auto(socket, msg);    // Send the message
+    printf("NL80211_CMD_GET_STATION sent %d bytes to the kernel.\n", ret);
+    ret = nl_recvmsgs_default(socket);    // Retrieve the kernel's answer (print_sta_handler() prints station info to stdout)
+    printf("Getting information is done.\n");
+    nlmsg_free(msg);
+
+    if (ret < 0) {
+    	printf("Error: nl_recvmsgs_default() returned %d (%s).\n", ret, nl_geterror(-ret));
+    	return ret;
+    }
+
+
+
+    return 0;
 }
