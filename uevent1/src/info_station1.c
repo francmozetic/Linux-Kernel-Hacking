@@ -402,7 +402,7 @@ int get_station_info(struct nl_sock *socket, int if_index, int driver_id) {
         return -ENOMEM;
     }
     // Setup the messages and callback handler.
-    genlmsg_put(msg, 0, 0, driver_id, 0, 0, NL80211_CMD_GET_STATION, 0);    // Setup which command to run
+    genlmsg_put(msg, 0, 0, driver_id, 0, NLM_F_DUMP, NL80211_CMD_GET_STATION, 0);    // Setup which command to run
     nla_put_u32(msg, NL80211_ATTR_IFINDEX, if_index);    // Add message attribute, which interface to use
     nl_socket_modify_cb(socket, NL_CB_VALID, NL_CB_CUSTOM, print_sta_handler, NULL);    // Add the callback
 
