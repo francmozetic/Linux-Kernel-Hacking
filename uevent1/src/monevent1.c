@@ -2403,12 +2403,20 @@ int main(void)
 	// Resolve Generic Netlink family name to numeric identifier (driver_id in this case).
 	int driver_id = genl_ctrl_resolve(socket, "nl80211");
 
-	// Issue NL80211_CMD_TRIGGER_SCAN to the kernel and wait for it to finish.
+	// Issue NL80211_CMD_GET_STATION to the kernel and wait for it to finish.
+	int err = get_station_info(socket, if_index, driver_id);
+    if (err != 0) {
+    	printf("get_station_info() failed with %d.\n", err);
+    	return err;
+    }
+
+	/* Issue NL80211_CMD_TRIGGER_SCAN to the kernel and wait for it to finish.
 	int err = do_scan_trigger(socket, if_index, driver_id);
     if (err != 0) {
     	printf("do_scan_trigger() failed with %d.\n", err);
     	return err;
     }
+	*/
 
     // Now get info for all SSIDs detected.
     struct nl_msg *msg = nlmsg_alloc();    // Allocate a message
