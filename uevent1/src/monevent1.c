@@ -2079,15 +2079,6 @@ int do_scan_trigger(struct nl_sock *socket, int if_index, int driver_id) {
 }
 //________________________________________________________________________________________________________________
 
-static int (*registered_handler)(struct nl_msg *, void *);
-static void *registered_handler_data;
-
-void register_handler(int (*handler)(struct nl_msg *, void *), void *data)
-{
-	registered_handler = handler;
-	registered_handler_data = data;
-}
-
 struct nl80211_state {
 	struct nl_sock *nl_sock;
 	int nl80211_id;
@@ -2328,10 +2319,10 @@ static int nl80211_listen_events(struct nl80211_state *state, struct print_event
 			wait_ev.n_cmds = n_waits;
 			wait_ev.prints = prints;
 			wait_ev.n_prints = n_prints;
-			register_handler(nl80211_wait, &wait_ev);
+			//register_handler(nl80211_wait, &wait_ev);
 		}
 	else {
-		register_handler(nl80211_print, args);
+		//register_handler(nl80211_print, args);
 	}
 
 	wait_ev.cmd = 0;

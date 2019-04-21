@@ -58,6 +58,12 @@ static int ack_handler(struct nl_msg *msg, void *arg) {
 static int (*registered_handler)(struct nl_msg *, void *);
 static void *registered_handler_data;
 
+void register_handler(int (*handler)(struct nl_msg *, void *), void *data)
+{
+	registered_handler = handler;
+	registered_handler_data = data;
+}
+
 int valid_handler(struct nl_msg *msg, void *arg)
 {
 	if (registered_handler)
@@ -400,7 +406,9 @@ int get_station_info(struct nl_sock *socket, int if_index, int driver_id) {
 	struct nl_cb *cb;
 	int err, ret;
 
-    // Allocate the messages and callback handler.
+	register_handler(print_sta_handler, NULL);
+
+	// Allocate the messages and callback handler.
     msg = nlmsg_alloc();
     if (!msg) {
         printf("Failed to allocate netlink message.\n");
@@ -425,7 +433,6 @@ int get_station_info(struct nl_sock *socket, int if_index, int driver_id) {
 
     ret = nl_send_auto(socket, msg);    // Send the message
     printf("NL80211_CMD_GET_STATION sent %d bytes to the kernel.\n", ret);
-    printf("Waiting for getting info to complete...\n");
 
     while (err > 0) ret = nl_recvmsgs(socket, cb);
     if (err < 0) {
