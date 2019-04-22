@@ -424,15 +424,14 @@ int get_station_info(struct nl_sock *socket, int if_index, int driver_id) {
     // Setup the messages and callback handler.
     genlmsg_put(msg, 0, 0, driver_id, 0, NLM_F_DUMP, NL80211_CMD_GET_STATION, 0);    // Setup which command to run
     nla_put_u32(msg, NL80211_ATTR_IFINDEX, if_index);    // Add message attribute, which interface to use
+    ret = nl_send_auto(socket, msg);    // Send the message
+    printf("NL80211_CMD_GET_STATION sent %d bytes to the kernel.\n", ret);
 
     err = 1;
     nl_cb_err(cb, NL_CB_CUSTOM, error_handler, &err);
     nl_cb_set(cb, NL_CB_FINISH, NL_CB_CUSTOM, finish_handler, &err);
     nl_cb_set(cb, NL_CB_ACK, NL_CB_CUSTOM, ack_handler, &err);
     nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, valid_handler, NULL);    // Add the callback
-
-    ret = nl_send_auto(socket, msg);    // Send the message
-    printf("NL80211_CMD_GET_STATION sent %d bytes to the kernel.\n", ret);
 
     while (err > 0) ret = nl_recvmsgs(socket, cb);
     if (err < 0) {
@@ -475,8 +474,6 @@ int get_station_infoo(struct nl_sock *socket, int if_index, int driver_id) {
     	printf("Error: nl_recvmsgs_default() returned %d (%s).\n", ret, nl_geterror(-ret));
     	return ret;
     }
-
-
 
     return 0;
 }
