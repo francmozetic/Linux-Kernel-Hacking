@@ -391,9 +391,6 @@ static int print_sta_handler(struct nl_msg *msg, void *arg)
 		if (sinfo[NL80211_STA_INFO_CONNECTED_TIME]) {
 			printf("\n\tconnected time:\t%u seconds", nla_get_u32(sinfo[NL80211_STA_INFO_CONNECTED_TIME]));
 		}
-
-
-
 	}
 
 	printf("\n");
@@ -416,7 +413,7 @@ int get_station_info(struct nl_sock *socket, int if_index, int driver_id) {
     }
     cb = nl_cb_alloc(NL_CB_DEFAULT);
     if (!cb) {
-        printf("Failed to allocate netlink callbacks.\n");
+        printf("Failed to allocate netlink callback.\n");
         nlmsg_free(msg);
         return -ENOMEM;
     }
