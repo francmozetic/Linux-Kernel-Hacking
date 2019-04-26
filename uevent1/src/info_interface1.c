@@ -11,6 +11,8 @@
  * https://stackoverflow.com/questions/18062268/using-nl80211-h-to-scan-access-points
  */
 
+#include <errno.h>
+
 #include <linux/netlink.h>
 #include <linux/connector.h>
 #include <linux/nl80211.h>
@@ -20,6 +22,15 @@
 #include <netlink/genl/ctrl.h>
 
 #include "info_wifi.h"
+
+static int (*registered_handler)(struct nl_msg *, void *);
+static void *registered_handler_data;
+
+void register_handler(int (*handler)(struct nl_msg *, void *), void *data)
+{
+	registered_handler = handler;
+	registered_handler_data = data;
+}
 
 static char *channel_type_name(enum nl80211_channel_type channel_type)
 {
@@ -135,3 +146,37 @@ static int print_iface_handler(struct nl_msg *msg, void *arg)
 	return NL_SKIP;
 }
 
+int get_interface_info(struct nl_sock *socket, int if_index, int driver_id) {
+	// Gets information about an interface.
+	struct nl_msg *msg;
+	struct nl_cb *cb;
+	int err, ret;
+
+	register_handler(print_iface_handler, NULL);
+
+	// Allocate the messages and callback handler.
+    msg = nlmsg_alloc();
+    if (!msg) {
+        printf("Failed to allocate netlink message.\n");
+        return -ENOMEM;
+    }
+    cb = nl_cb_alloc(NL_CB_DEFAULT);
+    if (!cb) {
+        printf("Failed to allocate netlink callback.\n");
+        nlmsg_free(msg);
+        return -ENOMEM;
+    }
+
+    // Setup the messages and callback handler.
+    genlmsg_put(msg, 0, 0, driver_id, 0, NLM_F_DUMP, NL80211_CMD_GET_INTERFACE, 0);    // Setup which command to run
+    nla_put_u32(msg, NL80211_ATTR_IFINDEX, if_index);    // Add message attribute, which interface to use
+    ret = nl_send_auto(socket, msg);    // Send the message
+    printf("NL80211_CMD_GET_INTERFACE sent %d bytes to the kernel.\n", ret);
+
+
+
+    // Cleanup
+    nlmsg_free(msg);
+    nl_cb_put(cb);
+    return 0;
+}
