@@ -95,8 +95,7 @@ static int print_iface_handler(struct nl_msg *msg, void *arg)
 	}
 	if (tb_msg[NL80211_ATTR_SSID]) {
 		printf("%s\tssid ", indent);
-		print_ssid_escaped(nla_len(tb_msg[NL80211_ATTR_SSID]),
-				   nla_data(tb_msg[NL80211_ATTR_SSID]));
+		print_ssid_escaped(nla_len(tb_msg[NL80211_ATTR_SSID]), nla_data(tb_msg[NL80211_ATTR_SSID]));
 		printf("\n");
 	}
 	if (tb_msg[NL80211_ATTR_IFTYPE])
@@ -106,8 +105,7 @@ static int print_iface_handler(struct nl_msg *msg, void *arg)
 	if (tb_msg[NL80211_ATTR_WIPHY_FREQ]) {
 		uint32_t freq = nla_get_u32(tb_msg[NL80211_ATTR_WIPHY_FREQ]);
 
-		printf("%s\tchannel %d (%d MHz)", indent,
-		       ieee80211_frequency_to_channel(freq), freq);
+		printf("%s\tchannel %d (%d MHz)", indent, ieee80211_frequency_to_channel(freq), freq);
 
 		if (tb_msg[NL80211_ATTR_CHANNEL_WIDTH]) {
 			printf(", width: %s",
