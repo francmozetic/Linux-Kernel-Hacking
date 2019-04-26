@@ -17,7 +17,6 @@
 #include <net/if.h>
 
 #include <linux/netlink.h>
-#include <linux/connector.h>
 #include <linux/nl80211.h>
 
 #include <netlink/netlink.h>
@@ -27,11 +26,6 @@
 #include "info_wifi.h"
 
 #define BIT(x) (1ULL<<(x))
-
-struct info_results {
-    int done;
-    int aborted;
-};
 
 static int error_handler(struct sockaddr_nl *nla, struct nlmsgerr *err, void *arg) {
 	// Callback for errors.

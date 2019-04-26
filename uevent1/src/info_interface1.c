@@ -14,7 +14,6 @@
 #include <errno.h>
 
 #include <linux/netlink.h>
-#include <linux/connector.h>
 #include <linux/nl80211.h>
 
 #include <netlink/netlink.h>
