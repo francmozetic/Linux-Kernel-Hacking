@@ -13,6 +13,8 @@
 
 #include <errno.h>
 
+#include <net/if.h>
+
 #include <linux/netlink.h>
 #include <linux/nl80211.h>
 
