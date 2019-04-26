@@ -52,13 +52,13 @@ static int ack_handler(struct nl_msg *msg, void *arg) {
 static int (*registered_handler)(struct nl_msg *, void *);
 static void *registered_handler_data;
 
-void register_handler(int (*handler)(struct nl_msg *, void *), void *data)
+static void register_handler(int (*handler)(struct nl_msg *, void *), void *data)
 {
 	registered_handler = handler;
 	registered_handler_data = data;
 }
 
-int valid_handler(struct nl_msg *msg, void *arg)
+static int valid_handler(struct nl_msg *msg, void *arg)
 {
 	if (registered_handler)
 		return registered_handler(msg, registered_handler_data);

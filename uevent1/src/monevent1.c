@@ -72,6 +72,32 @@ void mac_addr_n2a(char *mac_addr, unsigned char *arg) {
     }
 }
 
+static const char *ifmodes[NL80211_IFTYPE_MAX + 1] = {
+	"unspecified",
+	"IBSS",
+	"managed",
+	"AP",
+	"AP/VLAN",
+	"WDS",
+	"monitor",
+	"mesh point",
+	"P2P-client",
+	"P2P-GO",
+	"P2P-device",
+	"outside context of a BSS",
+	"NAN",
+};
+
+static char modebuf[100];
+
+const char *iftype_name(enum nl80211_iftype iftype)
+{
+	if (iftype <= NL80211_IFTYPE_MAX && ifmodes[iftype])
+		return ifmodes[iftype];
+	sprintf(modebuf, "Unknown mode (%d)", iftype);
+	return modebuf;
+}
+
 int ieee80211_channel_to_frequency(int chan, enum nl80211_band band)
 {
 	/* see 802.11 17.3.8.3.2 and Annex J
