@@ -445,32 +445,3 @@ int get_station_info(struct nl_sock *socket, int if_index, int driver_id) {
     nl_cb_put(cb);
     return 0;
 }
-
-// To ne gre (print_sta_handler() is not called)
-int get_station_infoo(struct nl_sock *socket, int if_index, int driver_id) {
-	// Gets information about a station.
-
-    // Allocate the messages and callback handler.
-	struct nl_msg *msg = nlmsg_alloc();
-    if (!msg) {
-        printf("Failed to allocate netlink message.\n");
-        return -ENOMEM;
-    }
-
-    // Setup the messages and callback handler.
-    genlmsg_put(msg, 0, 0, driver_id, 0, NLM_F_DUMP, NL80211_CMD_GET_STATION, 0);    // Setup which command to run
-    nla_put_u32(msg, NL80211_ATTR_IFINDEX, if_index);    // Add message attribute, which interface to use
-    nl_socket_modify_cb(socket, NL_CB_VALID, NL_CB_CUSTOM, print_sta_handler, NULL);    // Add the callback
-    int ret = nl_send_auto(socket, msg);    // Send the message
-    printf("NL80211_CMD_GET_STATION sent %d bytes to the kernel.\n", ret);
-    ret = nl_recvmsgs_default(socket);    // Retrieve the kernel's answer (print_sta_handler() prints station info to stdout)
-    printf("Getting information is done.\n");
-    nlmsg_free(msg);
-
-    if (ret < 0) {
-    	printf("Error: nl_recvmsgs_default() returned %d (%s).\n", ret, nl_geterror(-ret));
-    	return ret;
-    }
-
-    return 0;
-}
