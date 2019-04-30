@@ -468,21 +468,3 @@ int main(void)
 
     return 0;
 }
-/*
-struct nl80211_state nlstate;
-int errnl;
-
-errnl = nl80211_init(&nlstate);
-if (errnl)
-	return 1;
-
-struct print_event_args args;
-
-errnl = nl80211_listen_events(&nlstate, &args);
-if (errnl)
-	return 1;
-*/
-
-/*
-nl80211_cleanup(&nlstate);
-*/
