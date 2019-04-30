@@ -1,10 +1,10 @@
 /**
- * @file: info_interface1.c
+ * @file: info_scan1.c
  * @author: Aleksander Mozetic
  * @date: 30 April 2019
  * @version: 1.2.2.0
  * @copyright: 2019 IndigoSoft
- * @brief: Getting information about an interface.
+ * @brief: Getting scan information about an interface.
  *
  * Resources:
  * https://git.kernel.org/pub/scm/linux/kernel/git/jberg/iw.git
@@ -248,7 +248,8 @@ void print_ssid_escaped(const uint8_t len, const uint8_t *data)
 	}
 }
 
-static void print_ssid(const uint8_t type, uint8_t len, const uint8_t *data, const struct print_ies_data *ie_buffer)
+static void print_ssid(const uint8_t type, uint8_t len, const uint8_t *data,
+		const struct print_ies_data *ie_buffer)
 {
 	printf(" ");
 	print_ssid_escaped(len, data);
@@ -653,6 +654,7 @@ static void print_capabilities(const uint8_t type, uint8_t len, const uint8_t *d
 	break;    \
 } while (0)
 
+
 			switch (bit + base) {
 			CAPA(0, "HT Information Exchange Supported");
 			CAPA(1, "reserved (On-demand Beacon)");
@@ -879,14 +881,14 @@ void print_vht_info(__u32 capa, const __u8 *mcs)
 }
 
 static void print_vht_capa(const uint8_t type, uint8_t len, const uint8_t *data,
-			   const struct print_ies_data *ie_buffer)
+		const struct print_ies_data *ie_buffer)
 {
 	printf("\n");
 	print_vht_info(data[0] | (data[1] << 8) | (data[2] << 16) | (data[3] << 24), data + 4);
 }
 
 static void print_vht_oper(const uint8_t type, uint8_t len, const uint8_t *data,
-			   const struct print_ies_data *ie_buffer)
+		const struct print_ies_data *ie_buffer)
 {
 	const char *chandwidths[] = {
 		[0] = "20 or 40 MHz",
@@ -1212,8 +1214,7 @@ static void _print_rsn_ie(const char *defcipher, const char *defauth, uint8_t le
 	}
 }
 
-static void print_rsn_ie(const char *defcipher, const char *defauth,
-			 uint8_t len, const uint8_t *data)
+static void print_rsn_ie(const char *defcipher, const char *defauth, uint8_t len, const uint8_t *data)
 {
 	_print_rsn_ie(defcipher, defauth, len, data, 0);
 }

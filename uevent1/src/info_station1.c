@@ -1,7 +1,7 @@
 /**
  * @file: info_station1.c
  * @author: Aleksander Mozetic
- * @date: 15 April 2019
+ * @date: 30 April 2019
  * @version: 1.2.2.0
  * @copyright: 2019 IndigoSoft
  * @brief: Getting information about a station.
