@@ -4,7 +4,7 @@
  * @date: 30 April 2019
  * @version: 1.2.2.0
  * @copyright: 2019 IndigoSoft
- * @brief: Getting scan information about an interface.
+ * @brief: Getting scan information for all SSIDs detected.
  *
  * Resources:
  * https://git.kernel.org/pub/scm/linux/kernel/git/jberg/iw.git
