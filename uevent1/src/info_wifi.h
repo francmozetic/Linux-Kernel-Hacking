@@ -17,6 +17,8 @@ int ieee80211_frequency_to_channel(int freq);
 
 void print_ssid_escaped(const uint8_t len, const uint8_t *data);
 
+int do_scan_trigger(struct nl_sock *socket, int if_index, int driver_id);
+int get_scan_info(struct nl_sock *socket, int if_index, int driver_id);
 int get_station_info(struct nl_sock *socket, int if_index, int driver_id);
 int get_interface_info(struct nl_sock *socket, int if_index, int driver_id);
 
