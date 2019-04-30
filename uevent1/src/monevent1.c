@@ -451,6 +451,13 @@ int main(void)
     	return err;
     }
 
+	// Issue NL80211_CMD_GET_SCAN to the kernel and wait for it to finish.
+	err = get_scan_info(socket, if_index, driver_id);
+    if (err != 0) {
+    	printf("get_scan_info() failed with %d.\n", err);
+    	return err;
+    }
+
     /* Now get info for all SSIDs detected.
     struct nl_msg *msg = nlmsg_alloc();    // Allocate a message
     genlmsg_put(msg, 0, 0, driver_id, 0, NLM_F_DUMP, NL80211_CMD_GET_SCAN, 0);    // Setup which command to run
