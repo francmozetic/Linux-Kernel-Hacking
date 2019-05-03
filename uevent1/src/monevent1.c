@@ -934,6 +934,176 @@ static void print_vht_oper(const uint8_t type, uint8_t len, const uint8_t *data,
 	printf("\t\t * VHT basic MCS set: 0x%.2x%.2x\n", data[4], data[3]);
 }
 
+static void _print_rsn_ie(const char *defcipher, const char *defauth, uint8_t len, const uint8_t *data, int is_osen)
+{
+	bool first = true;
+	__u16 count, capa;
+	int i;
+
+	if (!is_osen) {
+		__u16 version;
+		version = data[0] + (data[1] << 8);
+		tab_on_first(&first);
+		printf("\t * Version: %d\n", version);
+
+		data += 2;
+		len -= 2;
+	}
+
+	if (len < 4) {
+		tab_on_first(&first);
+		printf("\t * Group cipher: %s\n", defcipher);
+		printf("\t * Pairwise ciphers: %s\n", defcipher);
+		return;
+	}
+
+	tab_on_first(&first);
+	printf("\t * Group cipher: ");
+	print_cipher(data);
+	printf("\n");
+
+	data += 4;
+	len -= 4;
+
+	if (len < 2) {
+		tab_on_first(&first);
+		printf("\t * Pairwise ciphers: %s\n", defcipher);
+		return;
+	}
+
+	count = data[0] | (data[1] << 8);
+	if (2 + (count * 4) > len)
+		goto invalid;
+
+	tab_on_first(&first);
+	printf("\t * Pairwise ciphers:");
+	for (i = 0; i < count; i++) {
+		printf(" ");
+		print_cipher(data + 2 + (i * 4));
+	}
+	printf("\n");
+
+	data += 2 + (count * 4);
+	len -= 2 + (count * 4);
+
+	if (len < 2) {
+		tab_on_first(&first);
+		printf("\t * Authentication suites: %s\n", defauth);
+		return;
+	}
+
+	count = data[0] | (data[1] << 8);
+	if (2 + (count * 4) > len)
+		goto invalid;
+
+	tab_on_first(&first);
+	printf("\t * Authentication suites:");
+	for (i = 0; i < count; i++) {
+		printf(" ");
+		print_auth(data + 2 + (i * 4));
+	}
+	printf("\n");
+
+	data += 2 + (count * 4);
+	len -= 2 + (count * 4);
+
+	if (len >= 2) {
+		capa = data[0] | (data[1] << 8);
+		tab_on_first(&first);
+		printf("\t * Capabilities:");
+		if (capa & 0x0001)
+			printf(" PreAuth");
+		if (capa & 0x0002)
+			printf(" NoPairwise");
+		switch ((capa & 0x000c) >> 2) {
+		case 0:
+			printf(" 1-PTKSA-RC");
+			break;
+		case 1:
+			printf(" 2-PTKSA-RC");
+			break;
+		case 2:
+			printf(" 4-PTKSA-RC");
+			break;
+		case 3:
+			printf(" 16-PTKSA-RC");
+			break;
+		}
+		switch ((capa & 0x0030) >> 4) {
+		case 0:
+			printf(" 1-GTKSA-RC");
+			break;
+		case 1:
+			printf(" 2-GTKSA-RC");
+			break;
+		case 2:
+			printf(" 4-GTKSA-RC");
+			break;
+		case 3:
+			printf(" 16-GTKSA-RC");
+			break;
+		}
+		if (capa & 0x0040)
+			printf(" MFP-required");
+		if (capa & 0x0080)
+			printf(" MFP-capable");
+		if (capa & 0x0200)
+			printf(" Peerkey-enabled");
+		if (capa & 0x0400)
+			printf(" SPP-AMSDU-capable");
+		if (capa & 0x0800)
+			printf(" SPP-AMSDU-required");
+		printf(" (0x%.4x)\n", capa);
+		data += 2;
+		len -= 2;
+	}
+
+	if (len >= 2) {
+		int pmkid_count = data[0] | (data[1] << 8);
+
+		if (len >= 2 + 16 * pmkid_count) {
+			tab_on_first(&first);
+			printf("\t * %d PMKIDs\n", pmkid_count);
+			/* not printing PMKID values */
+			data += 2 + 16 * pmkid_count;
+			len -= 2 + 16 * pmkid_count;
+		} else
+			goto invalid;
+	}
+
+	if (len >= 4) {
+		tab_on_first(&first);
+		printf("\t * Group mgmt cipher suite: ");
+		print_cipher(data);
+		printf("\n");
+		data += 4;
+		len -= 4;
+	}
+
+ invalid:
+	if (len != 0) {
+		printf("\t\t * bogus tail data (%d):", len);
+		while (len) {
+			printf(" %.2x", *data);
+			data++;
+			len--;
+		}
+		printf("\n");
+	}
+}
+
+static void print_rsn_ie(const char *defcipher, const char *defauth,
+			 uint8_t len, const uint8_t *data)
+{
+	_print_rsn_ie(defcipher, defauth, len, data, 0);
+}
+
+static void print_rsn(const uint8_t type, uint8_t len, const uint8_t *data,
+		const struct print_ies_data *ie_buffer)
+{
+	print_rsn_ie("CCMP", "IEEE 802.1X", len, data);
+}
+
 static void print_mesh_conf(const uint8_t type, uint8_t len, const uint8_t *data,
 		const struct print_ies_data *ie_buffer)
 {
@@ -1047,6 +1217,7 @@ static const struct ie_print ieprinters[] = {
 	[61] = { "HT operation", print_ht_op, 22, 22, BIT(PRINT_SCAN), },
 	[191] = { "VHT capabilities", print_vht_capa, 12, 255, BIT(PRINT_SCAN), },
 	[192] = { "VHT operation", print_vht_oper, 5, 255, BIT(PRINT_SCAN), },
+	[48] = { "RSN", print_rsn, 2, 255, BIT(PRINT_SCAN), },
 	[50] = { "Extended supported rates", print_supprates, 0, 255, BIT(PRINT_SCAN), },
 	[113] = { "MESH Configuration", print_mesh_conf, 7, 7, BIT(PRINT_SCAN), },
 	[114] = { "MESH ID", print_ssid, 0, 32, BIT(PRINT_SCAN) | BIT(PRINT_LINK), },
