@@ -17,7 +17,11 @@ int ieee80211_channel_to_frequency(int chan, enum nl80211_band band);
 int ieee80211_frequency_to_channel(int freq);
 
 void print_ssid_escaped(const uint8_t len, const uint8_t *data);
+void print_ampdu_length(__u8 exponent);
 void print_ampdu_spacing(__u8 spacing);
+void print_ht_capability(__u16 cap);
+void print_ht_mcs(const __u8 *mcs);
+void print_vht_info(__u32 capa, const __u8 *mcs);
 
 int nl_get_multicast_id(struct nl_sock *sock, const char *family, const char *group);
 int do_scan_trigger(struct nl_sock *socket, int if_index, int driver_id);
