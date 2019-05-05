@@ -4,7 +4,7 @@
  * @date: 30 April 2019
  * @version: 1.2.2.0
  * @copyright: 2019 IndigoSoft
- * @brief: Getting scan information for all SSIDs detected.
+ * @brief: Getting wireless devices information.
  *
  * Resources:
  * https://git.kernel.org/pub/scm/linux/kernel/git/jberg/iw.git
@@ -331,7 +331,7 @@ next:
 	}
 
 	int get_wiphy_info(struct nl_sock *socket, int if_index, int driver_id) {
-		// Gets information about a station.
+		// Gets information about wireless devices.
 		struct nl_msg *msg;
 		struct nl_cb *cb;
 		int err, ret;
