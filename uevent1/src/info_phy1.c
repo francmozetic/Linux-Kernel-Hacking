@@ -229,6 +229,42 @@ next:
 			printf("\tRTS threshold: %d\n", rts);
 	}
 
+	if (tb_msg[NL80211_ATTR_SUPPORTED_COMMANDS]) {
+		printf("\tSupported commands:\n");
+		nla_for_each_nested(nl_cmd, tb_msg[NL80211_ATTR_SUPPORTED_COMMANDS], rem_cmd)
+			printf("\t\t * %s\n", command_name(nla_get_u32(nl_cmd)));
+	}
+
+	if (tb_msg[NL80211_ATTR_TX_FRAME_TYPES]) {
+		printf("\tSupported TX frame types:\n");
+		nla_for_each_nested(nl_if, tb_msg[NL80211_ATTR_TX_FRAME_TYPES], rem_if) {
+			bool printed = false;
+			nla_for_each_nested(nl_ftype, nl_if, rem_ftype) {
+				if (!printed)
+					printf("\t\t * %s:", iftype_name(nla_type(nl_if)));
+				printed = true;
+				printf(" 0x%.2x", nla_get_u16(nl_ftype));
+			}
+			if (printed)
+				printf("\n");
+		}
+	}
+
+	if (tb_msg[NL80211_ATTR_RX_FRAME_TYPES]) {
+		printf("\tSupported RX frame types:\n");
+		nla_for_each_nested(nl_if, tb_msg[NL80211_ATTR_RX_FRAME_TYPES], rem_if) {
+			bool printed = false;
+			nla_for_each_nested(nl_ftype, nl_if, rem_ftype) {
+				if (!printed)
+					printf("\t\t * %s:", iftype_name(nla_type(nl_if)));
+				printed = true;
+				printf(" 0x%.2x", nla_get_u16(nl_ftype));
+			}
+			if (printed)
+				printf("\n");
+		}
+	}
+
 	if (tb_msg[NL80211_ATTR_FEATURE_FLAGS]) {
 		unsigned int features = nla_get_u32(tb_msg[NL80211_ATTR_FEATURE_FLAGS]);
 
