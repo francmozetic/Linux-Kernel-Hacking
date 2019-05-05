@@ -493,7 +493,14 @@ int main(void)
     	return err;
     } */
 
-	// Issue NL80211_CMD_TRIGGER_SCAN to the kernel and wait for it to finish.
+	// Issue NL80211_CMD_GET_WIPHY to the kernel and wait for it to finish.
+	err = get_wiphy_info(socket, if_index, driver_id);
+    if (err != 0) {
+    	printf("get_wiphy_info() failed with %d.\n", err);
+    	return err;
+    }
+
+	/* Issue NL80211_CMD_TRIGGER_SCAN to the kernel and wait for it to finish.
 	int err = do_scan_trigger(socket, if_index, driver_id);
     if (err != 0) {
     	printf("do_scan_trigger() failed with %d.\n", err);
@@ -505,7 +512,7 @@ int main(void)
     if (err != 0) {
     	printf("get_scan_info() failed with %d.\n", err);
     	return err;
-    }
+    } */
 
     return 0;
 }

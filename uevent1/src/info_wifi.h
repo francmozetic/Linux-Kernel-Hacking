@@ -21,6 +21,7 @@ void print_ampdu_spacing(__u8 spacing);
 int nl_get_multicast_id(struct nl_sock *sock, const char *family, const char *group);
 int do_scan_trigger(struct nl_sock *socket, int if_index, int driver_id);
 int get_scan_info(struct nl_sock *socket, int if_index, int driver_id);
+int get_wiphy_info(struct nl_sock *socket, int if_index, int driver_id);
 int get_station_info(struct nl_sock *socket, int if_index, int driver_id);
 int get_interface_info(struct nl_sock *socket, int if_index, int driver_id);
 
