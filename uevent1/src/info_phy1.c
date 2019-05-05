@@ -352,23 +352,23 @@ int get_wiphy_info(struct nl_sock *socket, int if_index, int driver_id) {
 	register_handler(print_phy_handler, NULL);
 
 	// Allocate the messages and callback handler.
-    msg = nlmsg_alloc();
-    if (!msg) {
-        printf("Failed to allocate netlink message.\n");
-        return -ENOMEM;
-    }
-    cb = nl_cb_alloc(NL_CB_DEFAULT);
-    if (!cb) {
-        printf("Failed to allocate netlink callback.\n");
-        nlmsg_free(msg);
-        return -ENOMEM;
-    }
+	msg = nlmsg_alloc();
+	if (!msg) {
+		printf("Failed to allocate netlink message.\n");
+		return -ENOMEM;
+	}
+	cb = nl_cb_alloc(NL_CB_DEFAULT);
+	if (!cb) {
+		printf("Failed to allocate netlink callback.\n");
+		nlmsg_free(msg);
+		return -ENOMEM;
+	}
 
-    // Setup the messages and callback handler.
-    genlmsg_put(msg, 0, 0, driver_id, 0, NLM_F_DUMP, NL80211_CMD_GET_STATION, 0);    // Setup which command to run
+	// Setup the messages and callback handler.
+	genlmsg_put(msg, 0, 0, driver_id, 0, NLM_F_DUMP, NL80211_CMD_GET_WIPHY, 0);    // Setup which command to run
     nla_put_u32(msg, NL80211_ATTR_IFINDEX, if_index);    // Add message attribute, which interface to use
     ret = nl_send_auto(socket, msg);    // Send the message
-    printf("NL80211_CMD_GET_STATION sent %d bytes to the kernel.\n", ret);
+    printf("NL80211_CMD_GET_WIPHY sent %d bytes to the kernel.\n", ret);
 
     err = 1;
     nl_cb_err(cb, NL_CB_CUSTOM, error_handler, &err);
