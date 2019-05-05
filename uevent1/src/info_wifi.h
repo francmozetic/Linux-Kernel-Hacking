@@ -5,6 +5,9 @@
  * @version: 1.2.2.0
  * @copyright: 2019 IndigoSoft
  * @brief: Getting information about a station.
+ *
+ * Resources:
+ * https://git.kernel.org/pub/scm/linux/kernel/git/jberg/iw.git
  */
 
 #ifndef INFO_WIFI_H_
