@@ -66,6 +66,16 @@ static int valid_handler(struct nl_msg *msg, void *arg)
 	return NL_OK;
 }
 
+static void print_flag(const char *name, int *open)
+{
+	if (!*open)
+		printf(" (");
+	else
+		printf(", ");
+	printf("%s", name);
+	*open = 1;
+}
+
 static int print_phy_handler(struct nl_msg *msg, void *arg)
 {
 	struct nlattr *tb_msg[NL80211_ATTR_MAX + 1];
@@ -330,54 +340,54 @@ next:
 			printf("\tDevice supports randomizing MAC-addr in net-detect scans.\n");
 	}
 
-	int get_wiphy_info(struct nl_sock *socket, int if_index, int driver_id) {
-		// Gets information about wireless devices.
-		struct nl_msg *msg;
-		struct nl_cb *cb;
-		int err, ret;
-
-		register_handler(print_phy_handler, NULL);
-
-		// Allocate the messages and callback handler.
-	    msg = nlmsg_alloc();
-	    if (!msg) {
-	        printf("Failed to allocate netlink message.\n");
-	        return -ENOMEM;
-	    }
-	    cb = nl_cb_alloc(NL_CB_DEFAULT);
-	    if (!cb) {
-	        printf("Failed to allocate netlink callback.\n");
-	        nlmsg_free(msg);
-	        return -ENOMEM;
-	    }
-
-	    // Setup the messages and callback handler.
-	    genlmsg_put(msg, 0, 0, driver_id, 0, NLM_F_DUMP, NL80211_CMD_GET_WIPHY, 0);    // Setup which command to run
-	    nla_put_u32(msg, NL80211_ATTR_IFINDEX, if_index);    // Add message attribute, which interface to use
-	    ret = nl_send_auto(socket, msg);    // Send the message
-	    printf("NL80211_CMD_GET_WIPHY sent %d bytes to the kernel.\n", ret);
-
-	    err = 1;
-	    nl_cb_err(cb, NL_CB_CUSTOM, error_handler, &err);
-	    nl_cb_set(cb, NL_CB_FINISH, NL_CB_CUSTOM, finish_handler, &err);
-	    nl_cb_set(cb, NL_CB_ACK, NL_CB_CUSTOM, ack_handler, &err);
-	    nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, valid_handler, NULL);    // Add the callback
-
-	    while (err > 0) ret = nl_recvmsgs(socket, cb);
-	    if (err < 0) {
-	    	printf("Error: err has a value of %d.\n", err);
-	    }
-	    if (ret < 0) {
-	    	printf("Error: nl_recvmsgs() returned %d (%s).\n", ret, nl_geterror(-ret));
-	    	return ret;
-	    }
-	    printf("Getting info is done.\n");
-
-	    // Cleanup
-	    nlmsg_free(msg);
-	    nl_cb_put(cb);
-	    return 0;
-	}
-
 	return NL_SKIP;
+}
+
+int get_wiphy_info(struct nl_sock *socket, int if_index, int driver_id) {
+	// Gets information about wireless devices.
+	struct nl_msg *msg;
+	struct nl_cb *cb;
+	int err, ret;
+
+	register_handler(print_phy_handler, NULL);
+
+	// Allocate the messages and callback handler.
+    msg = nlmsg_alloc();
+    if (!msg) {
+        printf("Failed to allocate netlink message.\n");
+        return -ENOMEM;
+    }
+    cb = nl_cb_alloc(NL_CB_DEFAULT);
+    if (!cb) {
+        printf("Failed to allocate netlink callback.\n");
+        nlmsg_free(msg);
+        return -ENOMEM;
+    }
+
+    // Setup the messages and callback handler.
+    genlmsg_put(msg, 0, 0, driver_id, 0, NLM_F_DUMP, NL80211_CMD_GET_STATION, 0);    // Setup which command to run
+    nla_put_u32(msg, NL80211_ATTR_IFINDEX, if_index);    // Add message attribute, which interface to use
+    ret = nl_send_auto(socket, msg);    // Send the message
+    printf("NL80211_CMD_GET_STATION sent %d bytes to the kernel.\n", ret);
+
+    err = 1;
+    nl_cb_err(cb, NL_CB_CUSTOM, error_handler, &err);
+    nl_cb_set(cb, NL_CB_FINISH, NL_CB_CUSTOM, finish_handler, &err);
+    nl_cb_set(cb, NL_CB_ACK, NL_CB_CUSTOM, ack_handler, &err);
+    nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, valid_handler, NULL);    // Add the callback
+
+    while (err > 0) ret = nl_recvmsgs(socket, cb);
+    if (err < 0) {
+    	printf("Error: err has a value of %d.\n", err);
+    }
+    if (ret < 0) {
+    	printf("Error: nl_recvmsgs() returned %d (%s).\n", ret, nl_geterror(-ret));
+    	return ret;
+    }
+    printf("Getting info is done.\n");
+
+    // Cleanup
+    nlmsg_free(msg);
+    nl_cb_put(cb);
+    return 0;
 }

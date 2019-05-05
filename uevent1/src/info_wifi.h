@@ -12,6 +12,7 @@
 
 void mac_addr_n2a(char *mac_addr, unsigned char *arg);
 const char *iftype_name(enum nl80211_iftype iftype);
+const char *command_name(enum nl80211_commands cmd);
 int ieee80211_channel_to_frequency(int chan, enum nl80211_band band);
 int ieee80211_frequency_to_channel(int freq);
 
