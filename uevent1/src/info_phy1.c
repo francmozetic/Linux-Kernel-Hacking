@@ -1,12 +1,13 @@
 /**
  * @file: info_phy1.c
  * @author: Aleksander Mozetic
- * @date: 30 April 2019
+ * @date: 10 May 2019
  * @version: 1.2.2.0
  * @copyright: 2019 IndigoSoft
  * @brief: Getting wireless devices information.
  *
  * Resources:
+ * https://wireless.wiki.kernel.org/
  * https://git.kernel.org/pub/scm/linux/kernel/git/jberg/iw.git
  */
 
@@ -365,28 +366,28 @@ int get_wiphy_info(struct nl_sock *socket, int if_index, int driver_id) {
 
 	// Setup the messages and callback handler.
 	genlmsg_put(msg, 0, 0, driver_id, 0, NLM_F_DUMP, NL80211_CMD_GET_WIPHY, 0);    // Setup which command to run
-    nla_put_u32(msg, NL80211_ATTR_IFINDEX, if_index);    // Add message attribute, which interface to use
-    ret = nl_send_auto(socket, msg);    // Send the message
-    printf("NL80211_CMD_GET_WIPHY sent %d bytes to the kernel.\n", ret);
+	nla_put_u32(msg, NL80211_ATTR_IFINDEX, if_index);    // Add message attribute, which interface to use
+	ret = nl_send_auto(socket, msg);    // Send the message
+	printf("NL80211_CMD_GET_WIPHY sent %d bytes to the kernel.\n", ret);
 
-    err = 1;
-    nl_cb_err(cb, NL_CB_CUSTOM, error_handler, &err);
-    nl_cb_set(cb, NL_CB_FINISH, NL_CB_CUSTOM, finish_handler, &err);
-    nl_cb_set(cb, NL_CB_ACK, NL_CB_CUSTOM, ack_handler, &err);
-    nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, valid_handler, NULL);    // Add the callback
+	err = 1;
+	nl_cb_err(cb, NL_CB_CUSTOM, error_handler, &err);
+	nl_cb_set(cb, NL_CB_FINISH, NL_CB_CUSTOM, finish_handler, &err);
+	nl_cb_set(cb, NL_CB_ACK, NL_CB_CUSTOM, ack_handler, &err);
+	nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, valid_handler, NULL);    // Add the callback
 
-    while (err > 0) ret = nl_recvmsgs(socket, cb);
-    if (err < 0) {
-    	printf("Error: err has a value of %d.\n", err);
-    }
-    if (ret < 0) {
-    	printf("Error: nl_recvmsgs() returned %d (%s).\n", ret, nl_geterror(-ret));
-    	return ret;
-    }
-    printf("Getting info is done.\n");
+	while (err > 0) ret = nl_recvmsgs(socket, cb);
+	if (err < 0) {
+		printf("Error: err has a value of %d.\n", err);
+	}
+	if (ret < 0) {
+		printf("Error: nl_recvmsgs() returned %d (%s).\n", ret, nl_geterror(-ret));
+		return ret;
+	}
+	printf("Getting info is done.\n");
 
-    // Cleanup
-    nlmsg_free(msg);
-    nl_cb_put(cb);
-    return 0;
+	// Cleanup
+	nlmsg_free(msg);
+	nl_cb_put(cb);
+	return 0;
 }

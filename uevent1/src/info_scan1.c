@@ -7,6 +7,7 @@
  * @brief: Getting scan information for all SSIDs detected.
  *
  * Resources:
+ * https://wireless.wiki.kernel.org/
  * https://git.kernel.org/pub/scm/linux/kernel/git/jberg/iw.git
  * https://stackoverflow.com/questions/18062268/using-nl80211-h-to-scan-access-points
  */
