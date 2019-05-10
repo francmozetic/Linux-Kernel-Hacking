@@ -76,6 +76,44 @@ static void print_flag(const char *name, int *open)
 	*open = 1;
 }
 
+static char *cipher_name(__u32 c)
+{
+	static char buf[20];
+
+	switch (c) {
+	case 0x000fac01:
+		return "WEP40 (00-0f-ac:1)";
+	case 0x000fac05:
+		return "WEP104 (00-0f-ac:5)";
+	case 0x000fac02:
+		return "TKIP (00-0f-ac:2)";
+	case 0x000fac04:
+		return "CCMP-128 (00-0f-ac:4)";
+	case 0x000fac06:
+		return "CMAC (00-0f-ac:6)";
+	case 0x000fac08:
+		return "GCMP-128 (00-0f-ac:8)";
+	case 0x000fac09:
+		return "GCMP-256 (00-0f-ac:9)";
+	case 0x000fac0a:
+		return "CCMP-256 (00-0f-ac:10)";
+	case 0x000fac0b:
+		return "GMAC-128 (00-0f-ac:11)";
+	case 0x000fac0c:
+		return "GMAC-256 (00-0f-ac:12)";
+	case 0x000fac0d:
+		return "CMAC-256 (00-0f-ac:13)";
+	case 0x00147201:
+		return "WPI-SMS4 (00-14-72:1)";
+	default:
+		sprintf(buf, "%.2x-%.2x-%.2x:%d",
+			c >> 24, (c >> 16) & 0xff,
+			(c >> 8) & 0xff, c & 0xff);
+
+		return buf;
+	}
+}
+
 static int print_phy_handler(struct nl_msg *msg, void *arg)
 {
 	struct nlattr *tb_msg[NL80211_ATTR_MAX + 1];
@@ -237,6 +275,17 @@ next:
 		rts = nla_get_u32(tb_msg[NL80211_ATTR_WIPHY_RTS_THRESHOLD]);
 		if (rts != (unsigned int)-1)
 			printf("\tRTS threshold: %d\n", rts);
+	}
+
+	if (tb_msg[NL80211_ATTR_CIPHER_SUITES]) {
+		int num = nla_len(tb_msg[NL80211_ATTR_CIPHER_SUITES]) / sizeof(__u32);
+		int i;
+		__u32 *ciphers = nla_data(tb_msg[NL80211_ATTR_CIPHER_SUITES]);
+		if (num > 0) {
+			printf("\tSupported Ciphers:\n");
+			for (i = 0; i < num; i++)
+				printf("\t\t* %s\n", cipher_name(ciphers[i]));
+		}
 	}
 
 	if (tb_msg[NL80211_ATTR_WIPHY_ANTENNA_AVAIL_TX] &&
