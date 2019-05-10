@@ -245,8 +245,7 @@ next:
 			if (tb_band[NL80211_BAND_ATTR_RATES]) {
 			printf("\t\tBitrates (non-HT):\n");
 			nla_for_each_nested(nl_rate, tb_band[NL80211_BAND_ATTR_RATES], rem_rate) {
-				nla_parse(tb_rate, NL80211_BITRATE_ATTR_MAX, nla_data(nl_rate),
-					  nla_len(nl_rate), rate_policy);
+				nla_parse(tb_rate, NL80211_BITRATE_ATTR_MAX, nla_data(nl_rate), nla_len(nl_rate), rate_policy);
 				if (!tb_rate[NL80211_BITRATE_ATTR_RATE])
 					continue;
 				printf("\t\t\t* %2.1f Mbps", 0.1 * nla_get_u32(tb_rate[NL80211_BITRATE_ATTR_RATE]));
