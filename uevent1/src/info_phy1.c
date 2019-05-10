@@ -239,6 +239,18 @@ next:
 			printf("\tRTS threshold: %d\n", rts);
 	}
 
+	if (tb_msg[NL80211_ATTR_WIPHY_ANTENNA_AVAIL_TX] &&
+	    tb_msg[NL80211_ATTR_WIPHY_ANTENNA_AVAIL_RX])
+		printf("\tAvailable Antennas: TX %#x RX %#x\n",
+		       nla_get_u32(tb_msg[NL80211_ATTR_WIPHY_ANTENNA_AVAIL_TX]),
+		       nla_get_u32(tb_msg[NL80211_ATTR_WIPHY_ANTENNA_AVAIL_RX]));
+
+	if (tb_msg[NL80211_ATTR_WIPHY_ANTENNA_TX] &&
+	    tb_msg[NL80211_ATTR_WIPHY_ANTENNA_RX])
+		printf("\tConfigured Antennas: TX %#x RX %#x\n",
+		       nla_get_u32(tb_msg[NL80211_ATTR_WIPHY_ANTENNA_TX]),
+		       nla_get_u32(tb_msg[NL80211_ATTR_WIPHY_ANTENNA_RX]));
+
 	if (tb_msg[NL80211_ATTR_SUPPORTED_COMMANDS]) {
 		printf("\tSupported commands:\n");
 		nla_for_each_nested(nl_cmd, tb_msg[NL80211_ATTR_SUPPORTED_COMMANDS], rem_cmd)
