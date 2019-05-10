@@ -1,5 +1,5 @@
 /**
- * @file: monevent1.c
+ * @file: info_wifi.c
  * @author: Aleksander Mozetic
  * @date: 28 February 2019
  * @version: 1.2.2.0
@@ -9,7 +9,6 @@
  * Resources:
  * https://wireless.wiki.kernel.org/
  * https://git.kernel.org/pub/scm/linux/kernel/git/jberg/iw.git
- * https://stackoverflow.com/questions/18062268/using-nl80211-h-to-scan-access-points
  */
 
 #include <stdio.h>
@@ -569,6 +568,13 @@ int main(void)
 		return -ENOENT;
 	}
 
+	// Issue NL80211_CMD_GET_WIPHY to the kernel and wait for it to finish.
+	int err = get_wiphy_info(socket, if_index, driver_id);
+    if (err != 0) {
+    	printf("get_wiphy_info() failed with %d.\n", err);
+    	return err;
+    }
+
 	/* Issue NL80211_CMD_GET_INTERFACE to the kernel and wait for it to finish.
 	int err = get_interface_info(socket, if_index, driver_id);
     if (err != 0) {
@@ -582,13 +588,6 @@ int main(void)
     	printf("get_station_info() failed with %d.\n", err);
     	return err;
     } */
-
-	// Issue NL80211_CMD_GET_WIPHY to the kernel and wait for it to finish.
-	int err = get_wiphy_info(socket, if_index, driver_id);
-    if (err != 0) {
-    	printf("get_wiphy_info() failed with %d.\n", err);
-    	return err;
-    }
 
 	/* Issue NL80211_CMD_TRIGGER_SCAN to the kernel and wait for it to finish.
 	int err = do_scan_trigger(socket, if_index, driver_id);
