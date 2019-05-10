@@ -336,6 +336,65 @@ next:
 		}
 	}
 
+	if (tb_msg[NL80211_ATTR_WOWLAN_TRIGGERS_SUPPORTED]) {
+		struct nlattr *tb_wowlan[NUM_NL80211_WOWLAN_TRIG];
+		static struct nla_policy wowlan_policy[NUM_NL80211_WOWLAN_TRIG] = {
+			[NL80211_WOWLAN_TRIG_ANY] = { .type = NLA_FLAG },
+			[NL80211_WOWLAN_TRIG_DISCONNECT] = { .type = NLA_FLAG },
+			[NL80211_WOWLAN_TRIG_MAGIC_PKT] = { .type = NLA_FLAG },
+			[NL80211_WOWLAN_TRIG_PKT_PATTERN] = { .minlen = 12 },
+			[NL80211_WOWLAN_TRIG_GTK_REKEY_SUPPORTED] = { .type = NLA_FLAG },
+			[NL80211_WOWLAN_TRIG_GTK_REKEY_FAILURE] = { .type = NLA_FLAG },
+			[NL80211_WOWLAN_TRIG_EAP_IDENT_REQUEST] = { .type = NLA_FLAG },
+			[NL80211_WOWLAN_TRIG_4WAY_HANDSHAKE] = { .type = NLA_FLAG },
+			[NL80211_WOWLAN_TRIG_RFKILL_RELEASE] = { .type = NLA_FLAG },
+			[NL80211_WOWLAN_TRIG_NET_DETECT] = { .type = NLA_U32 },
+			[NL80211_WOWLAN_TRIG_TCP_CONNECTION] = { .type = NLA_NESTED },
+		};
+		struct nl80211_pattern_support *pat;
+		int err;
+
+		err = nla_parse_nested(tb_wowlan, MAX_NL80211_WOWLAN_TRIG,
+				       tb_msg[NL80211_ATTR_WOWLAN_TRIGGERS_SUPPORTED],
+				       wowlan_policy);
+		printf("\tWoWLAN support:");
+		if (err) {
+			printf(" <failed to parse>\n");
+		} else {
+			printf("\n");
+			if (tb_wowlan[NL80211_WOWLAN_TRIG_ANY])
+				printf("\t\t * wake up on anything (device continues operating normally)\n");
+			if (tb_wowlan[NL80211_WOWLAN_TRIG_DISCONNECT])
+				printf("\t\t * wake up on disconnect\n");
+			if (tb_wowlan[NL80211_WOWLAN_TRIG_MAGIC_PKT])
+				printf("\t\t * wake up on magic packet\n");
+			if (tb_wowlan[NL80211_WOWLAN_TRIG_PKT_PATTERN]) {
+				unsigned int len = nla_len(tb_wowlan[NL80211_WOWLAN_TRIG_PKT_PATTERN]);
+
+				pat = nla_data(tb_wowlan[NL80211_WOWLAN_TRIG_PKT_PATTERN]);
+				printf("\t\t * wake up on pattern match, up to %u patterns of %u-%u bytes,\n"
+					"\t\t   maximum packet offset %u bytes\n",
+					pat->max_patterns, pat->min_pattern_len, pat->max_pattern_len,
+					len < sizeof(*pat) ? 0 : pat->max_pkt_offset);
+			}
+			if (tb_wowlan[NL80211_WOWLAN_TRIG_GTK_REKEY_SUPPORTED])
+				printf("\t\t * can do GTK rekeying\n");
+			if (tb_wowlan[NL80211_WOWLAN_TRIG_GTK_REKEY_FAILURE])
+				printf("\t\t * wake up on GTK rekey failure\n");
+			if (tb_wowlan[NL80211_WOWLAN_TRIG_EAP_IDENT_REQUEST])
+				printf("\t\t * wake up on EAP identity request\n");
+			if (tb_wowlan[NL80211_WOWLAN_TRIG_4WAY_HANDSHAKE])
+				printf("\t\t * wake up on 4-way handshake\n");
+			if (tb_wowlan[NL80211_WOWLAN_TRIG_RFKILL_RELEASE])
+				printf("\t\t * wake up on rfkill release\n");
+			if (tb_wowlan[NL80211_WOWLAN_TRIG_NET_DETECT])
+				printf("\t\t * wake up on network detection, up to %d match sets\n",
+				       nla_get_u32(tb_wowlan[NL80211_WOWLAN_TRIG_NET_DETECT]));
+			if (tb_wowlan[NL80211_WOWLAN_TRIG_TCP_CONNECTION])
+				printf("\t\t * wake up on TCP connection\n");
+		}
+	}
+
 	if (tb_msg[NL80211_ATTR_SUPPORT_IBSS_RSN])
 		printf("\tDevice supports RSN-IBSS.\n");
 
