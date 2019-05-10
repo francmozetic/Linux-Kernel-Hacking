@@ -284,7 +284,7 @@ next:
 		if (num > 0) {
 			printf("\tSupported Ciphers:\n");
 			for (i = 0; i < num; i++)
-				printf("\t\t* %s\n", cipher_name(ciphers[i]));
+				printf("\t\t * %s\n", cipher_name(ciphers[i]));
 		}
 	}
 
