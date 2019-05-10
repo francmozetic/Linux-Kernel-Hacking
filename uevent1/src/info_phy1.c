@@ -398,6 +398,9 @@ next:
 	if (tb_msg[NL80211_ATTR_SUPPORT_IBSS_RSN])
 		printf("\tDevice supports RSN-IBSS.\n");
 
+	if (tb_msg[NL80211_ATTR_ROAM_SUPPORT])
+		printf("\tDevice supports roaming.\n");
+
 	if (tb_msg[NL80211_ATTR_FEATURE_FLAGS]) {
 		unsigned int features = nla_get_u32(tb_msg[NL80211_ATTR_FEATURE_FLAGS]);
 
