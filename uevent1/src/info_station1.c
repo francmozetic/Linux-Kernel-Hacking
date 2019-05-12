@@ -55,8 +55,20 @@ static int ack_handler(struct nl_msg *msg, void *arg) {
     return NL_STOP;
 }
 
-static int no_seq_check(struct nl_msg *msg, void *arg) {
-	// Callback for NL_CB_SEQ_CHECK.
+static int (*registered_handler)(struct nl_msg *, void *);
+static void *registered_handler_data;
+
+void register_handler(int (*handler)(struct nl_msg *, void *), void *data)
+{
+	registered_handler = handler;
+	registered_handler_data = data;
+}
+
+int valid_handler(struct nl_msg *msg, void *arg)
+{
+	if (registered_handler)
+		return registered_handler(msg, registered_handler_data);
+
 	return NL_OK;
 }
 
@@ -394,8 +406,6 @@ int get_station_info(struct nl_sock *socket, int if_index, int driver_id) {
 	struct nl_cb *cb;
 	int err, ret;
 
-    err = 1;
-
     // Allocate the messages and callback handler.
     msg = nlmsg_alloc();
     if (!msg) {
@@ -412,11 +422,13 @@ int get_station_info(struct nl_sock *socket, int if_index, int driver_id) {
     // Setup the messages and callback handler.
     genlmsg_put(msg, 0, 0, driver_id, 0, NLM_F_DUMP, NL80211_CMD_GET_STATION, 0);    // Setup which command to run
     nla_put_u32(msg, NL80211_ATTR_IFINDEX, if_index);    // Add message attribute, which interface to use
-    nl_socket_modify_cb(socket, NL_CB_VALID, NL_CB_CUSTOM, print_sta_handler, NULL);    // Add the callback
-    nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, print_sta_handler, NULL);    // Add the callback
+
+    err = 1;
     nl_cb_err(cb, NL_CB_CUSTOM, error_handler, &err);
     nl_cb_set(cb, NL_CB_FINISH, NL_CB_CUSTOM, finish_handler, &err);
     nl_cb_set(cb, NL_CB_ACK, NL_CB_CUSTOM, ack_handler, &err);
+    nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, valid_handler, NULL);    // Add the callback
+
     ret = nl_send_auto(socket, msg);    // Send the message
     printf("NL80211_CMD_GET_STATION sent %d bytes to the kernel.\n", ret);
     printf("Waiting for getting info to complete...\n");
