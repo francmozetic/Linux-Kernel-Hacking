@@ -27,6 +27,45 @@
 
 #include "info_wifi.h"
 
+static int error_handler(struct sockaddr_nl *nla, struct nlmsgerr *err, void *arg) {
+	// Callback for errors.
+    printf("error_handler() called.\n");
+    int *ret = arg;
+    *ret = err->error;
+    return NL_STOP;
+}
+
+static int finish_handler(struct nl_msg *msg, void *arg) {
+    // Callback for NL_CB_FINISH.
+    int *ret = arg;
+    *ret = 0;
+    return NL_SKIP;
+}
+
+static int ack_handler(struct nl_msg *msg, void *arg) {
+	// Callback for NL_CB_ACK.
+	int *ret = arg;
+    *ret = 0;
+    return NL_STOP;
+}
+
+static int (*registered_handler)(struct nl_msg *, void *);
+static void *registered_handler_data;
+
+static void register_handler(int (*handler)(struct nl_msg *, void *), void *data)
+{
+	registered_handler = handler;
+	registered_handler_data = data;
+}
+
+static int valid_handler(struct nl_msg *msg, void *arg)
+{
+	if (registered_handler)
+		return registered_handler(msg, registered_handler_data);
+
+	return NL_OK;
+}
+
 static int print_survey_handler(struct nl_msg *msg, void *arg)
 {
 	struct nlattr *tb[NL80211_ATTR_MAX + 1];
@@ -80,30 +119,6 @@ static int print_survey_handler(struct nl_msg *msg, void *arg)
 		printf("\tchannel transmit time:\t\t%llu ms\n",
 			(unsigned long long)nla_get_u64(sinfo[NL80211_SURVEY_INFO_CHANNEL_TIME_TX]));
 	return NL_SKIP;
-}
-
-static int ack_handler(struct nl_msg *msg, void *arg) {
-	// Callback for NL_CB_ACK.
-	int *ret = arg;
-    *ret = 0;
-    return NL_STOP;
-}
-
-static int (*registered_handler)(struct nl_msg *, void *);
-static void *registered_handler_data;
-
-static void register_handler(int (*handler)(struct nl_msg *, void *), void *data)
-{
-	registered_handler = handler;
-	registered_handler_data = data;
-}
-
-static int valid_handler(struct nl_msg *msg, void *arg)
-{
-	if (registered_handler)
-		return registered_handler(msg, registered_handler_data);
-
-	return NL_OK;
 }
 
 int get_station_info(struct nl_sock *socket, int if_index, int driver_id) {
