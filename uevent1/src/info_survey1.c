@@ -82,6 +82,13 @@ static int print_survey_handler(struct nl_msg *msg, void *arg)
 	return NL_SKIP;
 }
 
+static int ack_handler(struct nl_msg *msg, void *arg) {
+	// Callback for NL_CB_ACK.
+	int *ret = arg;
+    *ret = 0;
+    return NL_STOP;
+}
+
 static int (*registered_handler)(struct nl_msg *, void *);
 static void *registered_handler_data;
 
